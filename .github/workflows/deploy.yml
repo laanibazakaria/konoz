@@ -56,6 +56,9 @@ jobs:
             --dart-define=SUPABASE_ANON_KEY="${{ vars.SUPABASE_ANON_KEY }}"
           # Service worker Flutter obsolète : non utilisé (voir web/flutter_bootstrap.js)
           rm -f build/web/flutter_service_worker.js
+          # Version unique par mise en ligne, pour que les navigateurs chargent le nouveau jeu
+          sed -i "s/__BUILD__/${GITHUB_SHA::8}/g" build/web/index.html build/web/flutter_bootstrap.js
+          ! grep -q __BUILD__ build/web/index.html build/web/flutter_bootstrap.js
 
       - name: Admin — tests et compilation
         working-directory: admin

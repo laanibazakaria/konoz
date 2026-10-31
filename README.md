@@ -44,7 +44,6 @@ flutter run --dart-define=SUPABASE_URL=https://xxxx.supabase.co --dart-define=SU
 | `assets/characters/mascot.png` | الشخصية (الوحش البنفسجي) |
 | `assets/ui/parchment.png` | لوحة السؤال (رقّ) |
 | `assets/ui/wood_card.png` | بطاقة الإجابة الخشبية |
-| `assets/ui/chest.png` | صندوق الكنز |
 | `assets/backgrounds/quiz_*.png` | خلفيات شاشة السؤال (تُحدَّد لكل عالم في جدول `worlds`) |
 | `assets/backgrounds/map_*.png` | خلفيات الخريطة |
 | `assets/backgrounds/home.png` | الشاشة الرئيسية |

@@ -28,6 +28,5 @@ abstract final class AssetPaths {
   static const mascot = 'assets/characters/mascot.png';
   static const parchment = 'assets/ui/parchment.png';
   static const woodCard = 'assets/ui/wood_card.png';
-  static const chest = 'assets/ui/chest.png';
   static const home = 'assets/backgrounds/home.png';
 }

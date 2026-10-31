@@ -440,20 +440,6 @@ class _BottomScene extends StatelessWidget {
                 child: Mascot(size: mascotSize),
               ),
             ),
-            // صندوق الكنز
-            Positioned(
-              left: math.min(w * .40, mascotSize * 1.05),
-              bottom: 0,
-              child: AnimatedScale(
-                scale: feedback == _Feedback.correct ? 1.1 : 1,
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutBack,
-                child: AppAssets.has(AssetPaths.chest)
-                    // taille liée à la mascotte (donc à la hauteur disponible), pas à la largeur de l'écran
-                    ? Image.asset(AssetPaths.chest, height: mascotSize * .7)
-                    : Icon(Icons.inventory_2_rounded, size: mascotSize * .6, color: const Color(0xFF8B5A2B)),
-              ),
-            ),
             // فقاعة القطع
             Positioned(right: 10, bottom: 6, child: CoinBubble(coins: coins)),
 
