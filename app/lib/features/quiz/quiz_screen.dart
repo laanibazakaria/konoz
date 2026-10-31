@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/assets.dart';
 import '../../core/theme.dart';
 import '../../core/widgets.dart';
 import '../../data/models.dart';
@@ -270,11 +271,9 @@ class QuestionBoard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.parchment,
-          image: DecorationImage(
-            image: const AssetImage('assets/ui/parchment.png'),
-            fit: BoxFit.fill,
-            onError: (_, __) {},
-          ),
+          image: AppAssets.has(AssetPaths.parchment)
+              ? const DecorationImage(image: AssetImage(AssetPaths.parchment), fit: BoxFit.fill)
+              : null,
           borderRadius: BorderRadius.circular(4),
           boxShadow: const [BoxShadow(color: Color(0xFF6B4A35), offset: Offset(0, 6))],
         ),
@@ -352,11 +351,9 @@ class _ChoiceCardState extends State<ChoiceCard> {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: AppColors.wood,
-                        image: DecorationImage(
-                          image: const AssetImage('assets/ui/wood_card.png'),
-                          fit: BoxFit.fill,
-                          onError: (_, __) {},
-                        ),
+                        image: AppAssets.has(AssetPaths.woodCard)
+                            ? const DecorationImage(image: AssetImage(AssetPaths.woodCard), fit: BoxFit.fill)
+                            : null,
                         border: Border.all(color: borderColor, width: 4),
                         borderRadius: BorderRadius.circular(3),
                         boxShadow: [
@@ -451,12 +448,9 @@ class _BottomScene extends StatelessWidget {
                 scale: feedback == _Feedback.correct ? 1.1 : 1,
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeOutBack,
-                child: Image.asset(
-                  'assets/ui/chest.png',
-                  height: w * .30,
-                  errorBuilder: (_, __, ___) =>
-                      Icon(Icons.inventory_2_rounded, size: w * .26, color: const Color(0xFF8B5A2B)),
-                ),
+                child: AppAssets.has(AssetPaths.chest)
+                    ? Image.asset(AssetPaths.chest, height: w * .30)
+                    : Icon(Icons.inventory_2_rounded, size: w * .26, color: const Color(0xFF8B5A2B)),
               ),
             ),
             // فقاعة القطع

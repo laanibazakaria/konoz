@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/assets.dart';
 import 'core/theme.dart';
 import 'core/widgets.dart';
 import 'data/providers.dart';
@@ -19,6 +20,7 @@ const _supabaseKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await AppAssets.load(); // قائمة الصور المضمّنة، مرة واحدة
 
   QuizRepository repo = DemoQuizRepository();
   if (_supabaseUrl.isNotEmpty && _supabaseKey.isNotEmpty) {
@@ -64,7 +66,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           Positioned.fill(
             child: GameBackground(
-              asset: 'assets/backgrounds/home.png',
+              asset: AssetPaths.home,
               fallback: fallbackGradient(1, quiz: true),
             ),
           ),

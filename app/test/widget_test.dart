@@ -122,4 +122,19 @@ void main() {
     expect(find.text('ممتاز! بارك الله فيك'), findsOneWidget);
     expect(find.text('+50'), findsOneWidget);
   });
+
+  testWidgets('sans images fournies, l écran de question ne demande aucune image', (tester) async {
+    phone(tester);
+    await tester.pumpWidget(rtl(QuizGame(questions: [q('1', 0)], onFinished: (_) {})));
+    await tester.pump(const Duration(milliseconds: 300)); // pendant l'animation du parchemin
+
+    expect(find.byType(Image), findsNothing); // ni mascotte, ni coffre, ni fond
+    final images = tester
+        .widgetList<Container>(find.byType(Container))
+        .map((c) => c.decoration)
+        .whereType<BoxDecoration>()
+        .where((d) => d.image != null);
+    expect(images, isEmpty); // ni parchemin, ni cartes en bois
+    await tester.pumpAndSettle();
+  });
 }

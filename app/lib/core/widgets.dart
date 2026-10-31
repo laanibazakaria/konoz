@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'assets.dart';
 import 'theme.dart';
 
 /// خلفية من صورة، مع تدرّج بديل إذا لم تكن الصورة موجودة بعد.
@@ -10,20 +11,22 @@ class GameBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gradient = DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: fallback,
+        ),
+      ),
+    );
+    if (!AppAssets.has(asset)) return gradient;
     return Image.asset(
       asset,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-      errorBuilder: (_, __, ___) => DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: fallback,
-          ),
-        ),
-      ),
+      errorBuilder: (_, __, ___) => gradient,
     );
   }
 }
@@ -181,8 +184,9 @@ class Mascot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!AppAssets.has(AssetPaths.mascot)) return _MascotPlaceholder(size: size);
     return Image.asset(
-      'assets/characters/mascot.png',
+      AssetPaths.mascot,
       height: size * 1.2,
       errorBuilder: (_, __, ___) => _MascotPlaceholder(size: size),
     );
