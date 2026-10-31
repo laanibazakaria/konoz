@@ -52,6 +52,17 @@ class QuizApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
+      // Le jeu est conçu pour un téléphone : sur un écran large (ordinateur, tablette
+      // en paysage), on garde une colonne au format téléphone, centrée.
+      builder: (context, child) => ColoredBox(
+        color: const Color(0xFF2B1D14),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: kMaxGameWidth),
+            child: child,
+          ),
+        ),
+      ),
       home: const HomeScreen(),
     );
   }

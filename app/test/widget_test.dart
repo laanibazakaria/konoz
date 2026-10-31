@@ -152,4 +152,23 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('اختر «إضافة إلى الشاشة الرئيسية»'), findsOneWidget);
   });
+
+  testWidgets('écran large et peu haut (1366×650) : colonne téléphone, coffre sous les réponses', (tester) async {
+    tester.view.physicalSize = const Size(1366, 650);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(const ProviderScope(child: QuizApp()));
+    await tester.tap(find.text('ابدأ اللعب'));
+    await steps(tester, 2);
+    await tester.tap(find.text('1').first);
+    await steps(tester, 2);
+
+    final cards = find.byType(ChoiceCard);
+    expect(cards, findsNWidgets(3));
+    expect(tester.getSize(find.byType(QuizGame)).width, lessThanOrEqualTo(480));
+    final cardsBottom = tester.getRect(cards.first).bottom;
+    final chestTop = tester.getRect(find.byIcon(Icons.inventory_2_rounded)).top;
+    expect(chestTop, greaterThan(cardsBottom)); // le coffre ne recouvre plus les réponses
+  });
 }

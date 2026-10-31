@@ -17,6 +17,9 @@ abstract final class AppColors {
 
 const kFont = 'Tajawal';
 
+/// Largeur maximale du jeu (format téléphone), même sur un grand écran.
+const kMaxGameWidth = 480.0;
+
 ThemeData buildTheme() => ThemeData(
       useMaterial3: true,
       fontFamily: kFont,

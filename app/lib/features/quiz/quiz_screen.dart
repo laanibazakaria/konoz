@@ -442,15 +442,16 @@ class _BottomScene extends StatelessWidget {
             ),
             // صندوق الكنز
             Positioned(
-              left: w * .40,
+              left: math.min(w * .40, mascotSize * 1.05),
               bottom: 0,
               child: AnimatedScale(
                 scale: feedback == _Feedback.correct ? 1.1 : 1,
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.easeOutBack,
                 child: AppAssets.has(AssetPaths.chest)
-                    ? Image.asset(AssetPaths.chest, height: w * .30)
-                    : Icon(Icons.inventory_2_rounded, size: w * .26, color: const Color(0xFF8B5A2B)),
+                    // taille liée à la mascotte (donc à la hauteur disponible), pas à la largeur de l'écran
+                    ? Image.asset(AssetPaths.chest, height: mascotSize * .7)
+                    : Icon(Icons.inventory_2_rounded, size: mascotSize * .6, color: const Color(0xFF8B5A2B)),
               ),
             ),
             // فقاعة القطع

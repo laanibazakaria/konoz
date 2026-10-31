@@ -31,9 +31,9 @@
       background: linear-gradient(#55D8F2, #9BE15D);
     }
     /* Sur ordinateur : le jeu s'affiche dans un format téléphone. Installé ou sur mobile : plein écran. */
-    @media (min-width: 560px) and (min-height: 700px) and (display-mode: browser) {
+    @media (min-width: 560px) and (display-mode: browser) {
       #app {
-        width: 400px; height: min(860px, calc(100% - 48px));
+        width: 400px; height: min(860px, calc(100% - 32px));
         border-radius: 36px; border: 10px solid #2b1d14; box-shadow: 0 30px 80px #0008;
       }
     }
