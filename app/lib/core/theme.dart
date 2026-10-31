@@ -15,7 +15,11 @@ abstract final class AppColors {
   static const mascot = Color(0xFFA62BA0);
 }
 
+/// Police de lecture (questions, réponses) : très lisible, avec les voyelles (تشكيل).
 const kFont = 'Tajawal';
+
+/// Police des titres et des récompenses : ronde et ludique, pour les enfants.
+const kDisplayFont = 'Lalezar';
 
 /// Largeur maximale du jeu (format téléphone), même sur un grand écran.
 const kMaxGameWidth = 480.0;
@@ -26,19 +30,3 @@ ThemeData buildTheme() => ThemeData(
       colorScheme: ColorScheme.fromSeed(seedColor: AppColors.purpleText),
       scaffoldBackgroundColor: const Color(0xFF55D8F2),
     );
-
-/// خلفيات بديلة (تدرّجات) تُستخدم إذا لم تُضف الصور بعد — مفهرسة برقم العالم.
-List<Color> fallbackGradient(int worldId, {bool quiz = false}) {
-  const map = {
-    1: [Color(0xFFE9A15B), Color(0xFFC9733A)], // وادٍ
-    2: [Color(0xFF8C6A9E), Color(0xFF5E4370)], // بنفسجي
-    3: [Color(0xFFF3D98B), Color(0xFFE4B95B)], // صحراء
-  };
-  const quizColors = {
-    1: [Color(0xFF55D8F2), Color(0xFF8EE3F5), Color(0xFF9BE15D)], // غابة نهارية
-    2: [Color(0xFF1F5E6B), Color(0xFF2E8C8C), Color(0xFF3A6B4A)], // أدغال ليلية
-    3: [Color(0xFF7FD3F7), Color(0xFFFCE3A1), Color(0xFFE4B95B)], // صحراء
-  };
-  final table = quiz ? quizColors : map;
-  return table[((worldId - 1) % 3) + 1]!;
-}

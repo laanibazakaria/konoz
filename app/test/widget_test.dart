@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quiz_islami/core/install/install.dart';
+import 'package:quiz_islami/core/widgets.dart';
 import 'package:quiz_islami/data/models.dart';
 import 'package:quiz_islami/features/home/install_button.dart';
 import 'package:quiz_islami/data/quiz_repository.dart';
@@ -18,7 +19,10 @@ QuizQuestion q(String id, int correct) => QuizQuestion(
       explanation: 'شرح $id',
     );
 
+/// Écran en arabe, avec le réglage système « réduire les animations » :
+/// la mascotte et le décor restent immobiles, donc pumpAndSettle peut se terminer.
 Widget rtl(Widget child) => MaterialApp(
+      builder: (context, c) => MediaQuery(data: MediaQuery.of(context).copyWith(disableAnimations: true), child: c!),
       home: Directionality(textDirection: TextDirection.rtl, child: Scaffold(body: child)),
     );
 
@@ -80,8 +84,8 @@ void main() {
     await tester.tap(find.text('أ2')); // خطأ → يظهر الشرح
     await tester.pump(const Duration(milliseconds: 400));
     expect(find.text('شرح 2'), findsOneWidget);
-    expect(find.byIcon(Icons.check), findsOneWidget); // الإجابة الصحيحة مُظهرة
-    expect(find.byIcon(Icons.close), findsOneWidget);
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget); // الإجابة الصحيحة مُظهرة
+    expect(find.byIcon(Icons.close_rounded), findsOneWidget);
     await tester.pumpAndSettle(const Duration(seconds: 4));
 
     expect(sent, [1, 1]);
@@ -121,7 +125,7 @@ void main() {
       await tester.tap(find.text(answer));
       await steps(tester, 3);
     }
-    expect(find.text('المستوى 1'), findsOneWidget);
+    expect(find.text('المستوى 1'), findsWidgets); // titre en contour : 2 couches de texte
     expect(find.text('ممتاز! بارك الله فيك'), findsOneWidget);
     expect(find.text('+50'), findsOneWidget);
   });
@@ -193,4 +197,13 @@ void main() {
       }
     });
   }
+
+  testWidgets('accueil : le décor et le contenu occupent toute la largeur', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const ProviderScope(child: QuizApp()));
+    await steps(tester, 1);
+    expect(tester.getSize(find.byType(GameBackground)).width, 390);
+  });
 }

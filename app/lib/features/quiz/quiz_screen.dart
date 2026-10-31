@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/art/coin.dart';
+import '../../core/art/confetti.dart';
+import '../../core/art/paper_wood.dart';
 import '../../core/assets.dart';
 import '../../core/theme.dart';
 import '../../core/widgets.dart';
@@ -24,9 +27,10 @@ class QuizScreen extends ConsumerWidget {
     final questions = ref.watch(questionsProvider(level.id));
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand, // l'écran est toujours rempli, quel que soit le contenu
         children: [
           Positioned.fill(
-            child: GameBackground(asset: world.quizBackground, fallback: fallbackGradient(world.id, quiz: true)),
+            child: GameBackground(asset: world.quizBackground, scene: sceneForWorld(world.id)),
           ),
           questions.when(
             loading: () => const Center(child: CircularProgressIndicator(color: Colors.white)),
@@ -110,6 +114,10 @@ class _QuizGameState extends State<QuizGame> with SingleTickerProviderStateMixin
   bool _finished = false;
   _Feedback _feedback = _Feedback.none;
   final List<int> _answers = [];
+  int _celebrations = 0; // déclenche les confettis
+  String? _praise;
+
+  static const _praises = ['أحسنت!', 'ممتاز!', 'رائع!', 'بارك الله فيك!', 'أنت بطل!'];
 
   late final AnimationController _mascot =
       AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
@@ -132,7 +140,11 @@ class _QuizGameState extends State<QuizGame> with SingleTickerProviderStateMixin
       _selected = i;
       _answers.add(i + 1);
       _feedback = ok ? _Feedback.correct : _Feedback.wrong;
-      if (ok) _coins += widget.coinsPerCorrect;
+      if (ok) {
+        _coins += widget.coinsPerCorrect;
+        _celebrations++;
+        _praise = _praises[_celebrations % _praises.length];
+      }
     });
     _mascot.forward(from: 0);
 
@@ -150,6 +162,7 @@ class _QuizGameState extends State<QuizGame> with SingleTickerProviderStateMixin
       _index++;
       _selected = null;
       _feedback = _Feedback.none;
+      _praise = null;
     });
   }
 
@@ -171,69 +184,74 @@ class _QuizGameState extends State<QuizGame> with SingleTickerProviderStateMixin
       // نوزّع الارتفاع المتاح حتى لا يحدث تجاوز على الشاشات الصغيرة
       child: LayoutBuilder(builder: (context, c) {
         final h = c.maxHeight;
-        return Column(
-          children: [
-            // ── الأعلى: الرّق + زر القائمة ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: QuestionBoard(key: ValueKey(_q.id), text: _q.text)),
-                  const SizedBox(width: 8),
-                  RoundIconButton(icon: Icons.apps_rounded, onTap: () => _confirmQuit(context)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 22),
-
-            // ── الوسط: 3 خيارات بالضبط ──
-            Container(
-              constraints: BoxConstraints(maxHeight: h * .30),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                transitionBuilder: (child, a) => FadeTransition(
-                  opacity: a,
-                  child: SlideTransition(
-                    position: Tween(begin: const Offset(0, -.15), end: Offset.zero).animate(a),
-                    child: child,
-                  ),
-                ),
+        return Stack(children: [
+          Column(
+            children: [
+              // ── الأعلى: الرّق + زر القائمة ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
                 child: Row(
-                  key: ValueKey(_index),
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var i = 0; i < 3; i++)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: ChoiceCard(
-                            text: _q.choices[i],
-                            state: _stateFor(i),
-                            onTap: () => _onChoice(i),
-                          ),
-                        ),
-                      ),
+                    Expanded(child: QuestionBoard(key: ValueKey(_q.id), text: _q.text)),
+                    const SizedBox(width: 8),
+                    RoundIconButton(icon: Icons.apps_rounded, onTap: () => _confirmQuit(context)),
                   ],
                 ),
               ),
-            ),
-            const Spacer(),
+              const SizedBox(height: 22),
 
-            // ── الأسفل: الشخصية + الصندوق + القطع ──
-            _BottomScene(
-              controller: _mascot,
-              feedback: _feedback,
-              coins: _coins,
-              explanation: explanation,
-              maxHeight: h * .28,
-            ),
+              // ── الوسط: 3 خيارات بالضبط ──
+              Container(
+                constraints: BoxConstraints(maxHeight: h * .30),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  transitionBuilder: (child, a) => FadeTransition(
+                    opacity: a,
+                    child: SlideTransition(
+                      position: Tween(begin: const Offset(0, -.15), end: Offset.zero).animate(a),
+                      child: child,
+                    ),
+                  ),
+                  child: Row(
+                    key: ValueKey(_index),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (var i = 0; i < 3; i++)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 6),
+                            child: ChoiceCard(
+                              text: _q.choices[i],
+                              state: _stateFor(i),
+                              onTap: () => _onChoice(i),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const Spacer(),
 
-            // ── أسفل الشاشة: تقدّم المستوى ──
-            _LevelProgress(current: answered, total: total),
-          ],
-        );
+              // ── الأسفل: الشخصية + الصندوق + القطع ──
+              _BottomScene(
+                controller: _mascot,
+                feedback: _feedback,
+                coins: _coins,
+                gained: widget.coinsPerCorrect,
+                praise: _feedback == _Feedback.correct ? _praise : null,
+                explanation: explanation,
+                maxHeight: h * .28,
+              ),
+
+              // ── أسفل الشاشة: تقدّم المستوى ──
+              _LevelProgress(current: answered, total: total),
+            ],
+          ),
+          Positioned.fill(child: ConfettiBurst(trigger: _celebrations)),
+        ]);
       }),
     );
   }
@@ -261,31 +279,30 @@ class QuestionBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final image = AppAssets.has(AssetPaths.parchment);
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: .85, end: 1),
-      duration: const Duration(milliseconds: 500),
+      tween: Tween(begin: .8, end: 1),
+      duration: const Duration(milliseconds: 600),
       curve: Curves.elasticOut,
       builder: (_, s, child) => Transform.scale(scale: s, child: child),
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 130),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.parchment,
-          image: AppAssets.has(AssetPaths.parchment)
-              ? const DecorationImage(image: AssetImage(AssetPaths.parchment), fit: BoxFit.fill)
+      child: CustomPaint(
+        painter: image ? null : ParchmentPainter(seed: text.hashCode & 0xffff),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 130),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 22),
+          decoration: image
+              ? const BoxDecoration(image: DecorationImage(image: AssetImage(AssetPaths.parchment), fit: BoxFit.fill))
               : null,
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: const [BoxShadow(color: Color(0xFF6B4A35), offset: Offset(0, 6))],
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: text.length > 60 ? 21 : 26,
-            height: 1.7,
-            fontWeight: FontWeight.w700,
-            color: AppColors.purpleText,
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: text.length > 60 ? 21 : 26,
+              height: 1.7,
+              fontWeight: FontWeight.w800,
+              color: AppColors.purpleText,
+            ),
           ),
         ),
       ),
@@ -322,9 +339,77 @@ class _ChoiceCardState extends State<ChoiceCard> {
     final borderColor = switch (s) {
       ChoiceState.correct => AppColors.green,
       ChoiceState.wrong => AppColors.red,
-      _ => AppColors.brown,
+      _ => const Color(0xFF4A2410),
     };
     final highlighted = s == ChoiceState.correct || s == ChoiceState.wrong;
+    final image = AppAssets.has(AssetPaths.woodCard);
+
+    Widget card = AspectRatio(
+      aspectRatio: .86,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: image ? null : WoodCardPainter(border: borderColor, glow: highlighted ? borderColor : null),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(8, 16, 8, 10),
+                decoration: image
+                    ? BoxDecoration(
+                        image: const DecorationImage(image: AssetImage(AssetPaths.woodCard), fit: BoxFit.fill),
+                        border: Border.all(color: borderColor, width: 4),
+                      )
+                    : null,
+                alignment: Alignment.center,
+                child: Text(
+                  widget.text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: _fontSize, height: 1.6, fontWeight: FontWeight.w800, color: AppColors.darkBrown),
+                ),
+              ),
+            ),
+          ),
+          if (highlighted)
+            Positioned(
+              top: -16,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 450),
+                  curve: Curves.elasticOut,
+                  builder: (_, v, child) => Transform.scale(scale: v, child: child),
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: borderColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 3),
+                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+                    ),
+                    child: Icon(s == ChoiceState.correct ? Icons.check_rounded : Icons.close_rounded,
+                        color: Colors.white, size: 22),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+
+    // Une mauvaise réponse tremble brièvement.
+    if (s == ChoiceState.wrong) {
+      card = TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 500),
+        builder: (_, v, child) =>
+            Transform.translate(offset: Offset(math.sin(v * math.pi * 6) * 7 * (1 - v), 0), child: child),
+        child: card,
+      );
+    }
 
     return Semantics(
       button: true,
@@ -335,63 +420,13 @@ class _ChoiceCardState extends State<ChoiceCard> {
         onTapCancel: () => setState(() => _pressed = false),
         onTap: widget.onTap,
         child: AnimatedScale(
-          duration: const Duration(milliseconds: 140),
-          scale: _pressed ? .93 : (s == ChoiceState.correct ? 1.06 : 1),
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOutBack,
+          scale: _pressed ? .92 : (s == ChoiceState.correct ? 1.07 : 1),
           child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: s == ChoiceState.dimmed ? .5 : 1,
-            child: AspectRatio(
-              aspectRatio: .86,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.wood,
-                        image: AppAssets.has(AssetPaths.woodCard)
-                            ? const DecorationImage(image: AssetImage(AssetPaths.woodCard), fit: BoxFit.fill)
-                            : null,
-                        border: Border.all(color: borderColor, width: 4),
-                        borderRadius: BorderRadius.circular(3),
-                        boxShadow: [
-                          const BoxShadow(color: Colors.black26, offset: Offset(0, 5)),
-                          if (highlighted)
-                            BoxShadow(color: borderColor.withValues(alpha: .7), blurRadius: 18, spreadRadius: 2),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        widget.text,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: _fontSize,
-                          height: 1.6,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.darkBrown,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (highlighted)
-                    Positioned(
-                      top: -14,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: CircleAvatar(
-                          radius: 15,
-                          backgroundColor: borderColor,
-                          child:
-                              Icon(s == ChoiceState.correct ? Icons.check : Icons.close, color: Colors.white, size: 20),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
+            duration: const Duration(milliseconds: 250),
+            opacity: s == ChoiceState.dimmed ? .45 : 1,
+            child: card,
           ),
         ),
       ),
@@ -405,6 +440,8 @@ class _BottomScene extends StatelessWidget {
     required this.controller,
     required this.feedback,
     required this.coins,
+    required this.gained,
+    this.praise,
     this.explanation,
     this.maxHeight = double.infinity,
   });
@@ -412,6 +449,10 @@ class _BottomScene extends StatelessWidget {
   final AnimationController controller;
   final _Feedback feedback;
   final int coins;
+
+  /// Pièces gagnées à la dernière bonne réponse (affichées « +10 »).
+  final int gained;
+  final String? praise;
   final String? explanation;
   final double maxHeight;
 
@@ -419,7 +460,12 @@ class _BottomScene extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
-      final mascotSize = math.min(math.min(w * .42, 190.0), maxHeight / 1.25);
+      final mascotSize = math.min(math.min(w * .38, 170.0), maxHeight / 1.25);
+      final mood = switch (feedback) {
+        _Feedback.correct => MascotMood.happy,
+        _Feedback.wrong => MascotMood.sad,
+        _Feedback.none => MascotMood.idle,
+      };
       return SizedBox(
         height: mascotSize * 1.25,
         child: Stack(
@@ -427,29 +473,37 @@ class _BottomScene extends StatelessWidget {
           children: [
             // الشخصية: تقفز عند الصواب وتهتزّ عند الخطأ
             Positioned(
-              left: 0,
+              left: 4,
               bottom: 0,
               child: AnimatedBuilder(
                 animation: controller,
                 builder: (_, child) {
                   final t = controller.value;
-                  final dy = feedback == _Feedback.correct ? -math.sin(t * math.pi) * 34 : 0.0;
-                  final dx = feedback == _Feedback.wrong ? math.sin(t * math.pi * 6) * 10 * (1 - t) : 0.0;
+                  final dy = feedback == _Feedback.correct ? -math.sin(t * math.pi) * 40 : 0.0;
+                  final dx = feedback == _Feedback.wrong ? math.sin(t * math.pi * 6) * 8 * (1 - t) : 0.0;
                   return Transform.translate(offset: Offset(dx, dy), child: child);
                 },
-                child: Mascot(size: mascotSize),
+                child: Mascot(size: mascotSize, mood: mood),
               ),
             ),
-            // فقاعة القطع
+            // فقاعة القطع + «+10» الذي يطير
             Positioned(right: 10, bottom: 6, child: CoinBubble(coins: coins)),
+            if (feedback == _Feedback.correct && gained > 0)
+              Positioned(right: 18, bottom: 70, child: _FloatingGain(key: ValueKey(coins), amount: gained)),
 
-            // فقاعة الشرح فوق الشخصية بعد الإجابة الخاطئة
+            // تشجيع عند الصواب، وشرح عند الخطأ
+            if (praise != null)
+              Positioned(
+                left: mascotSize * .9,
+                top: 0,
+                child: _Bubble(key: ValueKey(praise), text: praise!, praise: true),
+              ),
             if (explanation != null)
               Positioned(
-                left: mascotSize * .55,
+                left: mascotSize * .7,
                 right: 12,
                 top: -40,
-                child: _SpeechBubble(text: explanation!),
+                child: _Bubble(text: explanation!),
               ),
           ],
         ),
@@ -458,29 +512,67 @@ class _BottomScene extends StatelessWidget {
   }
 }
 
-class _SpeechBubble extends StatelessWidget {
-  const _SpeechBubble({required this.text});
+/// Bulle qui sort de la mascotte : encouragement (grand, coloré) ou explication.
+class _Bubble extends StatelessWidget {
+  const _Bubble({super.key, required this.text, this.praise = false});
   final String text;
+  final bool praise;
 
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutBack,
+      duration: Duration(milliseconds: praise ? 500 : 300),
+      curve: praise ? Curves.elasticOut : Curves.easeOutBack,
       builder: (_, v, child) => Transform.scale(scale: v, alignment: Alignment.bottomLeft, child: child),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: praise ? 18 : 14, vertical: praise ? 6 : 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.purpleText, width: 2),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: praise ? AppColors.green : AppColors.purpleText, width: 3),
           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3))],
         ),
         child: Text(
           text,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 15, height: 1.5, fontWeight: FontWeight.w700, color: AppColors.darkBrown),
+          style: praise
+              ? const TextStyle(fontFamily: kDisplayFont, fontSize: 26, color: Color(0xFF2B8A3E))
+              : const TextStyle(fontSize: 15, height: 1.5, fontWeight: FontWeight.w800, color: AppColors.darkBrown),
+        ),
+      ),
+    );
+  }
+}
+
+class _FloatingGain extends StatelessWidget {
+  const _FloatingGain({super.key, required this.amount});
+  final int amount;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 1100),
+        curve: Curves.easeOut,
+        builder: (_, v, child) => Opacity(
+          opacity: v < .7 ? 1 : (1 - v) / .3,
+          child: Transform.translate(offset: Offset(0, -50 * v), child: child),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('+$amount',
+                textDirection: TextDirection.ltr,
+                style: const TextStyle(
+                  fontFamily: kDisplayFont,
+                  fontSize: 28,
+                  color: AppColors.gold,
+                  shadows: [Shadow(color: Color(0xFF8A5A00), offset: Offset(0, 2))],
+                )),
+            const CoinIcon(size: 26),
+          ],
         ),
       ),
     );
@@ -495,7 +587,14 @@ class _LevelProgress extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFFE0922E),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFE9A13C), Color(0xFFC9772A)],
+        ),
+        border: Border(top: BorderSide(color: Color(0xFF8A4A1F), width: 3)),
+      ),
       padding: EdgeInsets.fromLTRB(16, 10, 16, 12 + MediaQuery.paddingOf(context).bottom),
       child: Row(
         children: [
@@ -504,10 +603,10 @@ class _LevelProgress extends StatelessWidget {
             '$current/$total',
             textDirection: TextDirection.ltr,
             style: const TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
+              fontFamily: kDisplayFont,
+              fontSize: 28,
               color: Colors.white,
-              shadows: [Shadow(color: Colors.black38, offset: Offset(0, 2))],
+              shadows: [Shadow(color: Color(0xFF6B3A12), offset: Offset(0, 2))],
             ),
           ),
           const SizedBox(width: 12),

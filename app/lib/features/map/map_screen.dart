@@ -3,7 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/theme.dart';
+import '../../core/art/terrain.dart';
+import '../../core/assets.dart';
 import '../../core/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
@@ -44,18 +45,28 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-        child: Row(
-          children: [
-            // RTL: العدّاد يميناً، الشريط في الوسط، زر الرئيسية يساراً (كما في التصميم)
-            CoinCounter(coins: map.coins),
-            const SizedBox(width: 10),
-            Expanded(child: StripedProgressBar(value: map.globalProgress, height: 30)),
-            const SizedBox(width: 10),
-            RoundIconButton(icon: Icons.home_rounded, onTap: () => Navigator.of(context).maybePop()),
-          ],
+    // Bandeau dégradé : la barre reste lisible quand des décors passent dessous.
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x99000000), Color(0x00000000)],
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 14),
+          child: Row(
+            children: [
+              // RTL: العدّاد يميناً، الشريط في الوسط، زر الرئيسية يساراً (كما في التصميم)
+              CoinCounter(coins: map.coins),
+              const SizedBox(width: 10),
+              Expanded(child: StripedProgressBar(value: map.globalProgress, height: 30)),
+              const SizedBox(width: 10),
+              RoundIconButton(icon: Icons.home_rounded, onTap: () => Navigator.of(context).maybePop()),
+            ],
+          ),
         ),
       ),
     );
@@ -125,8 +136,6 @@ class _MapCanvasState extends State<_MapCanvas> {
             children: [
               // خلفية كل عالم في شريط خاص به
               ..._worldBands(map, points, w, h),
-              // الزينة (أشجار، صخور)
-              ..._decorations(levels.length, w, h),
               // الطريق
               Positioned.fill(child: CustomPaint(painter: _RoadPainter(points))),
               // المستويات
@@ -172,34 +181,14 @@ class _MapCanvasState extends State<_MapCanvas> {
         width: w,
         top: top,
         height: bottom - top,
-        child: GameBackground(asset: world.mapBackground, fallback: fallbackGradient(world.id)),
+        // Illustration du monde si elle est fournie, sinon terrain dessiné (prairie, nuit, désert)
+        child: AppAssets.has(world.mapBackground)
+            ? Image.asset(world.mapBackground, fit: BoxFit.cover)
+            : CustomPaint(painter: TerrainPainter(sceneForWorld(world.id), seed: world.id * 31 + start)),
       ));
       start = i;
     }
     return bands;
-  }
-
-  List<Widget> _decorations(int n, double w, double h) {
-    final rnd = math.Random(7); // ثابت: نفس الشكل في كل مرة
-    final items = <Widget>[];
-    for (var i = 0; i < n; i++) {
-      final p = _point(i, w, h);
-      // نضع الزينة في الجهة المقابلة للطريق
-      final side = p.dx > w / 2 ? -1 : 1;
-      final x = (w / 2 + side * w * (.25 + rnd.nextDouble() * .15)).clamp(10.0, w - 60);
-      final y = p.dy - _spacing * (.2 + rnd.nextDouble() * .5);
-      final tree = rnd.nextBool();
-      items.add(Positioned(
-        left: x,
-        top: y,
-        child: Icon(
-          tree ? Icons.park_rounded : Icons.landscape_rounded,
-          size: 40 + rnd.nextDouble() * 24,
-          color: tree ? const Color(0xFF3F9E3A) : const Color(0xFF9C5A2E),
-        ),
-      ));
-    }
-    return items;
   }
 
   void _open(BuildContext context, MapData map, Level level, int index) {

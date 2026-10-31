@@ -6,11 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/assets.dart';
 import 'core/theme.dart';
-import 'core/widgets.dart';
 import 'data/providers.dart';
 import 'data/quiz_repository.dart';
-import 'features/home/install_button.dart';
-import 'features/map/map_screen.dart';
+import 'features/home/home_screen.dart';
 
 /// التشغيل مع Supabase:
 ///   flutter run --dart-define=SUPABASE_URL=https://xxx.supabase.co --dart-define=SUPABASE_ANON_KEY=xxx
@@ -64,68 +62,6 @@ class QuizApp extends StatelessWidget {
         ),
       ),
       home: const HomeScreen(),
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: GameBackground(
-              asset: AssetPaths.home,
-              fallback: fallbackGradient(1, quiz: true),
-            ),
-          ),
-          SafeArea(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'مسابقة المسلم الصغير',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 38,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      shadows: [Shadow(color: AppColors.purpleText, offset: Offset(0, 3), blurRadius: 2)],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  const Mascot(size: 170),
-                  const SizedBox(height: 36),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const MapScreen())),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 56, vertical: 14),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFFFE27A), Color(0xFFF2A81D)],
-                        ),
-                        borderRadius: BorderRadius.circular(40),
-                        border: Border.all(color: Colors.white, width: 4),
-                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))],
-                      ),
-                      child: const Text('ابدأ اللعب',
-                          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: AppColors.darkBrown)),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const InstallButton(), // visible seulement dans un navigateur qui permet l'installation
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

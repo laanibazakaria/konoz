@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/art/coin.dart';
+import '../../core/art/confetti.dart';
+import '../../core/art/paper_wood.dart';
 import '../../core/theme.dart';
 import '../../core/widgets.dart';
 import '../../data/models.dart';
@@ -36,78 +39,90 @@ class ResultScreen extends ConsumerWidget {
           ),
         ));
 
+    final mood = result.stars >= 2 ? MascotMood.happy : (result.stars == 1 ? MascotMood.idle : MascotMood.sad);
+
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand, // l'écran est toujours rempli, quel que soit le contenu
         children: [
-          Positioned.fill(
-            child: GameBackground(asset: world.quizBackground, fallback: fallbackGradient(world.id, quiz: true)),
-          ),
+          Positioned.fill(child: GameBackground(asset: world.quizBackground, scene: sceneForWorld(world.id))),
           SafeArea(
             child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.parchment,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.brown, width: 4),
-                    boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 12, offset: Offset(0, 6))],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('المستوى ${level.number}',
-                          style:
-                              const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.purpleText)),
-                      const SizedBox(height: 16),
-                      _AnimatedStars(stars: result.stars),
-                      const SizedBox(height: 12),
-                      Text(_message,
-                          textAlign: TextAlign.center,
-                          style:
-                              const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.darkBrown)),
-                      const SizedBox(height: 8),
-                      Text('${result.correct} / ${result.total} إجابات صحيحة',
-                          style: const TextStyle(fontSize: 18, color: AppColors.darkBrown)),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.monetization_on_rounded, color: AppColors.gold, size: 32),
-                          const SizedBox(width: 6),
-                          Text('+${result.coinsEarned}',
-                              textDirection: TextDirection.ltr,
-                              style: const TextStyle(
-                                  fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.darkBrown)),
-                        ],
-                      ),
-                      if (result.coinsEarned == 0 && result.stars > 0)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 4),
-                          child: Text('تحصل على القطع عندما تحسّن نتيجتك',
-                              style: TextStyle(fontSize: 14, color: Colors.black54)),
-                        ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          RoundIconButton(icon: Icons.map_rounded, onTap: () => Navigator.of(context).pop()),
-                          const SizedBox(width: 16),
-                          RoundIconButton(icon: Icons.replay_rounded, onTap: () => play(level)),
-                          if (next != null) ...[
-                            const SizedBox(width: 16),
-                            // arrow_forward ينعكس تلقائياً في RTL فيشير إلى اليسار = «التالي»
-                            RoundIconButton(icon: Icons.arrow_forward_rounded, size: 68, onTap: () => play(next)),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Mascot(size: 110, mood: mood),
+                    CustomPaint(
+                      painter: ParchmentPainter(seed: level.number),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            OutlinedTitle('المستوى ${level.number}', size: 34),
+                            const SizedBox(height: 8),
+                            _AnimatedStars(stars: result.stars),
+                            const SizedBox(height: 10),
+                            Text(_message,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontFamily: kDisplayFont, fontSize: 24, height: 1.4, color: AppColors.purpleText)),
+                            const SizedBox(height: 6),
+                            Text('${result.correct} / ${result.total} إجابات صحيحة',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.darkBrown)),
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF3C4),
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(color: AppColors.gold, width: 3),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const CoinIcon(size: 32),
+                                  const SizedBox(width: 6),
+                                  Text('+${result.coinsEarned}',
+                                      textDirection: TextDirection.ltr,
+                                      style: const TextStyle(
+                                          fontFamily: kDisplayFont, fontSize: 30, color: AppColors.darkBrown)),
+                                ],
+                              ),
+                            ),
+                            if (result.coinsEarned == 0 && result.stars > 0)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 6),
+                                child: Text('تحصل على القطع عندما تحسّن نتيجتك',
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black54)),
+                              ),
+                            const SizedBox(height: 22),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                RoundIconButton(icon: Icons.map_rounded, onTap: () => Navigator.of(context).pop()),
+                                const SizedBox(width: 16),
+                                RoundIconButton(icon: Icons.replay_rounded, onTap: () => play(level)),
+                                if (next != null) ...[
+                                  const SizedBox(width: 16),
+                                  // arrow_forward ينعكس تلقائياً في RTL فيشير إلى اليسار = «التالي»
+                                  RoundIconButton(icon: Icons.arrow_forward_rounded, size: 72, onTap: () => play(next)),
+                                ],
+                              ],
+                            ),
                           ],
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
+          if (result.stars >= 2) Positioned.fill(child: ConfettiBurst(trigger: 1, count: result.stars * 30)),
         ],
       ),
     );
@@ -135,11 +150,20 @@ class _AnimatedStars extends StatelessWidget {
               builder: (_, v, child) => Transform.scale(scale: v, child: child),
               child: Padding(
                 padding: EdgeInsets.only(bottom: i == 1 ? 20 : 0),
-                child: Icon(
-                  Icons.star_rounded,
-                  size: i == 1 ? 84 : 66,
-                  color: i < stars ? AppColors.gold : const Color(0xFFD0C8BC),
-                  shadows: const [Shadow(color: Color(0xFF9A6A00), offset: Offset(0, 3))],
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // contour plus foncé derrière l'étoile
+                    Icon(Icons.star_rounded,
+                        size: (i == 1 ? 84 : 66) + 12,
+                        color: i < stars ? const Color(0xFFC77D0A) : const Color(0xFFB5A99A)),
+                    Icon(
+                      Icons.star_rounded,
+                      size: i == 1 ? 84 : 66,
+                      color: i < stars ? AppColors.gold : const Color(0xFFE2DAD0),
+                      shadows: const [Shadow(color: Color(0x66FFFFFF), offset: Offset(-2, -2))],
+                    ),
+                  ],
                 ),
               ),
             ),

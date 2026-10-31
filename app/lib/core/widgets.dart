@@ -1,32 +1,67 @@
 import 'package:flutter/material.dart';
 
+import 'art/coin.dart';
+import 'art/mascot_art.dart';
+import 'art/scenery.dart';
 import 'assets.dart';
 import 'theme.dart';
 
-/// خلفية من صورة، مع تدرّج بديل إذا لم تكن الصورة موجودة بعد.
+export 'art/mascot_art.dart' show MascotMood;
+export 'art/scenery.dart' show SceneTheme, sceneForWorld;
+
+/// Fond d'écran : l'illustration du monde si elle est fournie, sinon le décor animé dessiné en code.
 class GameBackground extends StatelessWidget {
-  const GameBackground({super.key, required this.asset, required this.fallback});
+  const GameBackground({super.key, required this.asset, required this.scene});
   final String asset;
-  final List<Color> fallback;
+  final SceneTheme scene;
 
   @override
   Widget build(BuildContext context) {
-    final gradient = DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: fallback,
-        ),
-      ),
-    );
-    if (!AppAssets.has(asset)) return gradient;
+    final drawn = Scenery(theme: scene);
+    if (!AppAssets.has(asset)) return drawn;
     return Image.asset(
       asset,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-      errorBuilder: (_, __, ___) => gradient,
+      errorBuilder: (_, __, ___) => drawn,
+    );
+  }
+}
+
+/// Titre ludique : police Lalezar, lettres blanches cernées de violet.
+class OutlinedTitle extends StatelessWidget {
+  const OutlinedTitle(this.text,
+      {super.key, this.size = 40, this.color = Colors.white, this.outline = AppColors.purpleText});
+  final String text;
+  final double size;
+  final Color color;
+  final Color outline;
+
+  @override
+  Widget build(BuildContext context) {
+    TextStyle style(Paint? fg) => TextStyle(
+          fontFamily: kDisplayFont,
+          fontSize: size,
+          height: 1.25,
+          color: fg == null ? color : null,
+          foreground: fg,
+          shadows: fg == null ? null : [Shadow(color: outline.withValues(alpha: .6), offset: const Offset(0, 4))],
+        );
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: style(Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = size * .16
+            ..strokeJoin = StrokeJoin.round
+            ..color = outline),
+        ),
+        Text(text, textAlign: TextAlign.center, style: style(null)),
+      ],
     );
   }
 }
@@ -121,7 +156,7 @@ class CoinCounter extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.monetization_on_rounded, color: AppColors.gold, size: 26),
+          const CoinIcon(size: 26),
           const SizedBox(width: 4),
           Text('$coins',
               textDirection: TextDirection.ltr,
@@ -177,94 +212,16 @@ class StripedProgressBar extends StatelessWidget {
   }
 }
 
-/// الشخصية (الوحش البنفسجي). تُرسم بالكود إذا لم تُضف الصورة بعد.
+/// La mascotte : l'illustration si elle est fournie, sinon la version dessinée et animée.
 class Mascot extends StatelessWidget {
-  const Mascot({super.key, required this.size});
+  const Mascot({super.key, required this.size, this.mood = MascotMood.idle});
   final double size;
+  final MascotMood mood;
 
   @override
   Widget build(BuildContext context) {
-    if (!AppAssets.has(AssetPaths.mascot)) return _MascotPlaceholder(size: size);
-    return Image.asset(
-      AssetPaths.mascot,
-      height: size * 1.2,
-      errorBuilder: (_, __, ___) => _MascotPlaceholder(size: size),
-    );
-  }
-}
-
-class _MascotPlaceholder extends StatelessWidget {
-  const _MascotPlaceholder({required this.size});
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget eye() => Container(
-          width: size * .22,
-          height: size * .22,
-          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-          alignment: Alignment.center,
-          child: Container(
-            width: size * .06,
-            height: size * .06,
-            decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
-          ),
-        );
-    Widget tooth() => Container(
-          width: size * .06,
-          height: size * .08,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(8)),
-          ),
-        );
-
-    return SizedBox(
-      width: size,
-      height: size * 1.2,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // الريش الأزرق فوق الرأس
-          for (final dx in [.25, .45, .62])
-            Positioned(
-              left: size * dx,
-              top: 0,
-              child: Transform.rotate(
-                angle: (dx - .45) * 1.4,
-                child: Container(
-                  width: size * .1,
-                  height: size * .3,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF5CC8F0),
-                    borderRadius: BorderRadius.circular(size),
-                  ),
-                ),
-              ),
-            ),
-          Positioned(
-            top: size * .2,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.mascot,
-                borderRadius: BorderRadius.circular(size * .18),
-              ),
-              padding: EdgeInsets.only(top: size * .2),
-              child: Column(
-                children: [
-                  Row(mainAxisSize: MainAxisSize.min, children: [eye(), SizedBox(width: size * .04), eye()]),
-                  SizedBox(height: size * .1),
-                  Row(mainAxisSize: MainAxisSize.min, children: [tooth(), SizedBox(width: size * .4), tooth()]),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    if (!AppAssets.has(AssetPaths.mascot)) return MascotArt(size: size, mood: mood);
+    return Image.asset(AssetPaths.mascot, height: size * 1.2);
   }
 }
 
