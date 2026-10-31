@@ -26,7 +26,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+
+      # Nettoie et vérifie SUPABASE_URL / SUPABASE_ANON_KEY (message clair en cas d'erreur de copier-coller),
+      # puis les rend disponibles aux étapes suivantes. Sans variables : mode démo.
+      - name: Configuration Supabase
+        env:
+          RAW_URL: ${{ vars.SUPABASE_URL }}
+          RAW_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: bash tool/supabase_config.sh
 
       - uses: subosito/flutter-action@v2
         with:
@@ -34,7 +42,7 @@ jobs:
           flutter-version: 3.47.9
           cache: true
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -52,8 +60,8 @@ jobs:
         run: |
           flutter build web --release --no-web-resources-cdn \
             --base-href "/${{ github.event.repository.name }}/" \
-            --dart-define=SUPABASE_URL="${{ vars.SUPABASE_URL }}" \
-            --dart-define=SUPABASE_ANON_KEY="${{ vars.SUPABASE_ANON_KEY }}"
+            --dart-define=SUPABASE_URL="$SUPABASE_URL" \
+            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
           # Service worker Flutter obsolète : non utilisé (voir web/flutter_bootstrap.js)
           rm -f build/web/flutter_service_worker.js
           # Version unique par mise en ligne, pour que les navigateurs chargent le nouveau jeu
@@ -63,8 +71,8 @@ jobs:
       - name: Admin — tests et compilation
         working-directory: admin
         env:
-          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ env.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
         run: |
           npm ci
           npm test
