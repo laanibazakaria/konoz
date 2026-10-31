@@ -1,0 +1,83 @@
+# Compile le jeu (Flutter web, installable) et le panneau admin, puis les publie sur GitHub Pages.
+#   Jeu   : https://<compte>.github.io/<dépôt>/
+#   Admin : https://<compte>.github.io/<dépôt>/admin/
+#
+# Pour brancher Supabase (sinon le jeu tourne en mode démo et l'admin affiche un message) :
+#   Settings → Secrets and variables → Actions → onglet « Variables » :
+#     SUPABASE_URL       = https://xxxx.supabase.co
+#     SUPABASE_ANON_KEY  = la clé publique « anon » (elle est faite pour être publique)
+name: Déploiement web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.9
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Jeu — dépendances et tests
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Jeu — compilation web
+        working-directory: app
+        run: |
+          flutter build web --release --no-web-resources-cdn \
+            --base-href "/${{ github.event.repository.name }}/" \
+            --dart-define=SUPABASE_URL="${{ vars.SUPABASE_URL }}" \
+            --dart-define=SUPABASE_ANON_KEY="${{ vars.SUPABASE_ANON_KEY }}"
+          # Service worker Flutter obsolète : non utilisé (voir web/flutter_bootstrap.js)
+          rm -f build/web/flutter_service_worker.js
+
+      - name: Admin — tests et compilation
+        working-directory: admin
+        env:
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          npm ci
+          npm test
+          npm run build
+          cp -r dist ../app/build/web/admin
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

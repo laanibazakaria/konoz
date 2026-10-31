@@ -9,6 +9,7 @@ import 'core/theme.dart';
 import 'core/widgets.dart';
 import 'data/providers.dart';
 import 'data/quiz_repository.dart';
+import 'features/home/install_button.dart';
 import 'features/map/map_screen.dart';
 
 /// التشغيل مع Supabase:
@@ -40,7 +41,7 @@ class QuizApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'مسابقة المسلم الصغير',
+      title: 'كنوز', // nom affiché dans l'onglet et sous l'icône
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),
       // واجهة عربية بالكامل، من اليمين إلى اليسار
@@ -106,6 +107,8 @@ class HomeScreen extends StatelessWidget {
                           style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: AppColors.darkBrown)),
                     ),
                   ),
+                  const SizedBox(height: 20),
+                  const InstallButton(), // visible seulement dans un navigateur qui permet l'installation
                 ],
               ),
             ),

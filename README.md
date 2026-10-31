@@ -64,6 +64,22 @@ npm run dev
 
 للنشر: `npm run build` ثم ارفع مجلد `dist/` إلى Vercel أو Netlify.
 
+## 4. النشر على الإنترنت (موقع قابل للتثبيت على الهاتف)
+
+اللعبة تُنشر كموقع ويب **قابل للتثبيت كتطبيق (PWA)**، تلقائياً عبر GitHub Actions عند كل `push` على `main`:
+
+- اللعبة: `https://<الحساب>.github.io/<المستودع>/`
+- لوحة الإدارة: `https://<الحساب>.github.io/<المستودع>/admin/`
+
+**مرة واحدة فقط:** في GitHub ← **Settings → Pages → Source** اختر **GitHub Actions**.
+
+**ربط Supabase:** في **Settings → Secrets and variables → Actions → Variables** أضف `SUPABASE_URL` و `SUPABASE_ANON_KEY`. بدونهما تعمل اللعبة في الوضع التجريبي.
+
+**التثبيت على الهاتف:** زر «ثبّت التطبيق على هاتفك» في الشاشة الرئيسية للعبة
+(Android وكمبيوتر عبر Chrome/Edge). على iPhone يعرض الزر الخطوات: Safari ← مشاركة ← «إضافة إلى الشاشة الرئيسية».
+
+أيقونات التطبيق تُولَّد بالأمر `python3 tool/make_icons.py`.
+
 ## قواعد اللعبة
 
 - **النجوم**: ‏100% → 3 نجوم، ‏70% → 2، ‏40% → 1.

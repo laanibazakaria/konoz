@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quiz_islami/core/install/install.dart';
 import 'package:quiz_islami/data/models.dart';
+import 'package:quiz_islami/features/home/install_button.dart';
 import 'package:quiz_islami/data/quiz_repository.dart';
 import 'package:quiz_islami/features/map/map_screen.dart';
 import 'package:quiz_islami/features/quiz/quiz_screen.dart';
@@ -136,5 +138,18 @@ void main() {
         .where((d) => d.image != null);
     expect(images, isEmpty); // ni parchemin, ni cartes en bois
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('bouton d installation : caché si installée, instructions sur iPhone', (tester) async {
+    await tester.pumpWidget(rtl(const InstallButton(stateOverride: InstallState.installed)));
+    expect(find.byType(TextButton), findsNothing);
+
+    await tester.pumpWidget(rtl(const InstallButton(stateOverride: InstallState.available)));
+    expect(find.text('ثبّت التطبيق على هاتفك'), findsOneWidget);
+
+    await tester.pumpWidget(rtl(const InstallButton(key: ValueKey('ios'), stateOverride: InstallState.ios)));
+    await tester.tap(find.text('ثبّت التطبيق على هاتفك'));
+    await tester.pumpAndSettle();
+    expect(find.text('اختر «إضافة إلى الشاشة الرئيسية»'), findsOneWidget);
   });
 }

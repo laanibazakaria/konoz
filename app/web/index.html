@@ -1,46 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
+  <!-- Remplacé à la compilation par --base-href (ex. /konoz/ sur GitHub Pages). -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="كنوز: لعبة أسئلة إسلامية تعليمية للأطفال، تعمل على الهاتف ويمكن تثبيتها كتطبيق.">
+  <meta name="theme-color" content="#55D8F2">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Installation sur iPhone (Safari → Partager → Sur l'écran d'accueil) -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="quiz_islami">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="كنوز">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>quiz_islami</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.json">
+  <title>كنوز</title>
+
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: linear-gradient(160deg, #3a2a52, #2b1d14);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    #app {
+      position: relative; width: 100%; height: 100%; overflow: hidden;
+      background: linear-gradient(#55D8F2, #9BE15D);
+    }
+    /* Sur ordinateur : le jeu s'affiche dans un format téléphone. Installé ou sur mobile : plein écran. */
+    @media (min-width: 560px) and (min-height: 700px) and (display-mode: browser) {
+      #app {
+        width: 400px; height: min(860px, calc(100% - 48px));
+        border-radius: 36px; border: 10px solid #2b1d14; box-shadow: 0 30px 80px #0008;
+      }
+    }
+    #loading {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      font: 700 20px 'Segoe UI', Tahoma, sans-serif; color: #fff; text-shadow: 0 2px 0 #8e1f8e;
+    }
+    #loading img { width: 96px; height: 96px; border-radius: 24px; animation: bob .9s ease-in-out infinite alternate; }
+    @keyframes bob { to { transform: translateY(-10px); } }
+    @media (prefers-reduced-motion: reduce) { #loading img { animation: none; } }
+  </style>
+
+  <script>
+    // ── Installation de l'app (PWA) ──
+    // On capte la proposition d'installation du navigateur avant le démarrage de Flutter,
+    // puis l'écran d'accueil du jeu affiche son bouton « ثبّت التطبيق ».
+    (function () {
+      var deferred = null, installed = false, listeners = [];
+      function notify() { listeners.forEach(function (cb) { try { cb(); } catch (e) {} }); }
+
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferred = e;
+        notify();
+      });
+      window.addEventListener('appinstalled', function () {
+        deferred = null; installed = true; notify();
+      });
+
+      /** 'installed' | 'available' | 'ios' | 'unavailable' */
+      window.konozInstallState = function () {
+        var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        if (standalone || installed) return 'installed';
+        if (deferred) return 'available';
+        var ios = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        return ios ? 'ios' : 'unavailable';
+      };
+      /** Ouvre la fenêtre d'installation du navigateur ; renvoie 'accepted' ou 'dismissed'. */
+      window.konozPromptInstall = function () {
+        if (!deferred) return Promise.resolve('unavailable');
+        var e = deferred;
+        e.prompt();
+        return e.userChoice.then(function (r) { deferred = null; notify(); return r.outcome; });
+      };
+      window.konozOnInstallChange = function (cb) { listeners.push(cb); };
+    })();
+  </script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="app">
+    <div id="loading"><img src="icons/Icon-192.png" alt="">جارٍ تحميل اللعبة…</div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
