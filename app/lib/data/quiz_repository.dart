@@ -14,6 +14,9 @@ abstract class QuizRepository {
 }
 
 // ═══════════════════════════ Supabase ═══════════════════════════
+/// Attention : dans le client Dart de Supabase, `order()` trie par défaut en ordre
+/// DÉCROISSANT (contrairement à SQL et au client JavaScript). Toujours préciser
+/// `ascending: true`, sinon la carte et les questions s'affichent à l'envers.
 class SupabaseQuizRepository implements QuizRepository {
   SupabaseQuizRepository(this._db);
   final SupabaseClient _db;
@@ -31,8 +34,8 @@ class SupabaseQuizRepository implements QuizRepository {
     final uid = _db.auth.currentUser!.id;
 
     final results = await Future.wait([
-      _db.from('worlds').select().order('sort_order'),
-      _db.from('levels').select('id, world_id, number, title, coins_per_correct').order('number'),
+      _db.from('worlds').select().order('sort_order', ascending: true),
+      _db.from('levels').select('id, world_id, number, title, coins_per_correct').order('number', ascending: true),
       _db.from('level_progress').select('level_id, best_stars, best_correct'),
       _db.from('profiles').select('coins').eq('id', uid).maybeSingle(),
     ]);
@@ -58,8 +61,8 @@ class SupabaseQuizRepository implements QuizRepository {
         .select('id, text_ar, choice_1, choice_2, choice_3, correct_choice, explanation, source_ref')
         .eq('level_id', levelId)
         .eq('status', 'published')
-        .order('position')
-        .order('id'); // نفس ترتيب submit_attempt على الخادم
+        .order('position', ascending: true)
+        .order('id', ascending: true); // نفس ترتيب submit_attempt على الخادم
     return (rows as List).map((e) => QuizQuestion.fromJson(e as Map<String, dynamic>)).toList();
   }
 
