@@ -1,0 +1,1011 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conversation Konoz</title>
+<style>
+body{font:15px/1.6 system-ui,'Segoe UI',Tahoma,sans-serif;max-width:860px;margin:0 auto;padding:24px 16px;background:#f6f3ee;color:#2b1d14}
+h1{color:#8e1f8e} section{background:#fff;border-radius:14px;padding:4px 20px;margin:14px 0;border:1px solid #e6ddd2}
+section.user{background:#f6e8f6;border-color:#e2c6e2} h2{font-size:16px;margin:14px 0 4px} small{color:#7a6a5f;font-weight:400}
+pre{background:#2b1d14;color:#f6e8d6;padding:12px;border-radius:8px;overflow-x:auto;font-size:13px;white-space:pre-wrap}
+code{background:#0000000f;padding:1px 5px;border-radius:4px} .h{display:block;font-size:16px;color:#8e1f8e}
+@media print{body{background:#fff} section{break-inside:avoid-page}}
+</style></head><body>
+<h1>Conversation : application de quiz islamique « كنوز »</h1>
+<p>Dépôt : https://github.com/laanibazakaria/konoz — Site : https://laanibazakaria.github.io/konoz/</p>
+<section class="user"><h2>Vous <small>2026-10-31 18:28 UTC</small></h2><p dir="auto">*[5 image(s) jointe(s)]*</p>
+<p dir="auto"><strong>Agis en tant que développeur mobile et architecte logiciel expert.</strong></p>
+<p dir="auto">Je souhaite créer une application mobile de quiz religieux (islamique) sous forme de jeu éducatif interactif. Je veux que tu m&#x27;aides à concevoir l&#x27;architecture globale, la base de données et le code de l&#x27;interface.</p>
+<p dir="auto">Voici la description détaillée du design et de l&#x27;interface (UI/UX) que je souhaite, basée sur mes images de référence :</p>
+<p dir="auto">* <strong>Écrans de parcours (Map/Niveaux) :</strong> Une carte de progression verticale avec un chemin sinueux dans un décor de canyon ou de nature (falaises, cactus, sapins). Le joueur avance de niveau en niveau (par exemple de 1 à 32). Chaque niveau est représenté par un badge rond bleu affichant jusqu&#x27;à 3 étoiles dorées selon le score du joueur. En haut de l&#x27;écran, il y a une barre de progression globale et un compteur de pièces d&#x27;or.<br>* <strong>Écrans de jeu (Questions) :</strong><br>* Une interface très colorée avec des décors naturels variés en arrière-plan (forêt de jour, jungle de nuit, etc.).<br>* En haut : La question religieuse (ex: &quot;Combien y a-t-il de Rak&#x27;ahs dans la prière du Sobh ?&quot;) est affichée sur un grand panneau de style parchemin ou papier déchiré.<br>* Au centre : <strong>Exactement 3 choix de réponses</strong>, affichés sur des panneaux carrés avec une texture en bois.<br>* En bas : Un personnage mascotte (un gentil monstre violet avec de grands yeux) à côté d&#x27;un coffre au trésor.<br>* Tout en bas : Une barre de progression indiquant l&#x27;avancement dans le niveau actuel (ex: 4/14 ou 24/24), et une bulle en bas à droite montrant les pièces gagnées (ex: 30 ou 50).</p>
+<p dir="auto"><strong>Fonctionnalités principales requises :</strong></p>
+<p dir="auto">1. <strong>Application Client (Joueur) :</strong> Jouer aux niveaux, répondre aux questions à 3 choix, accumuler des pièces et des étoiles, et voir sa progression sur la carte.<br>2. <strong>Panneau d&#x27;Administration (Admin) :</strong> Un système back-end permettant à un administrateur d&#x27;ajouter, modifier et supprimer facilement des questions religieuses, de définir les 3 choix pour chaque question, et de sélectionner la bonne réponse.</p>
+<p dir="auto"><strong>Ce que j&#x27;attends de toi :</strong></p>
+<p dir="auto">1. <strong>Stack Technique :</strong> Propose-moi la meilleure pile technologique (frontend mobile, backend et base de données) pour réaliser ce projet de la manière la plus efficace. Justifie tes choix en m&#x27;expliquant pourquoi ces technologies sont les plus adaptées pour ce type de jeu et de panneau d&#x27;administration.<br>2. <strong>Modèle de données :</strong> Donne-moi la structure de la base de données (tables, collections ou entités) pour gérer de manière optimale les niveaux, les questions à 3 choix, et la sauvegarde de la progression de l&#x27;utilisateur.<br>3. <strong>Code de l&#x27;UI :</strong> Écris le code de base du composant principal de l&#x27;écran de question, en intégrant la disposition mentionnée (le grand panneau pour la question, les 3 boutons pour les choix, et la zone inférieure pour la mascotte et la barre de progression).</p></section><section class="ai"><h2>Claude <small>2026-10-31 18:31 UTC</small></h2><p dir="auto"><strong class="h">Application de quiz islamique : architecture, base de données et écran de question</strong></p>
+<p dir="auto">Pour reproduire cette interface, je vous conseille <strong>Flutter</strong> pour l&#x27;application mobile, <strong>Supabase</strong> pour le backend et <strong>Refine</strong> (un framework React) pour le panneau d&#x27;administration. Les choix sont justifiés ci-dessous, puis viennent le schéma de la base de données et le code de l&#x27;écran de question.</p>
+<p dir="auto">---</p>
+<p dir="auto"><strong class="h">1. Stack technique</strong></p>
+<p dir="auto">| Couche | Choix | Pourquoi |<br>|---|---|---|<br>| <strong>Mobile</strong> | <strong>Flutter (Dart)</strong> + Riverpod (gestion d&#x27;état) + go_router (navigation) | Flutter dessine lui-même chaque pixel, donc le rendu est identique sur Android et iOS. C&#x27;est important pour une interface très illustrée (parchemin, panneaux en bois, mascotte). Les animations sont fluides à 60 images/s sans moteur de jeu, et l&#x27;arabe de droite à gauche est géré nativement (<code>Directionality</code>, ligatures, voyelles). On a une seule base de code. |<br>| <strong>Carte des niveaux</strong> | Widgets Flutter (<code>CustomScrollView</code> + <code>Stack</code> + <code>CustomPainter</code> pour le chemin) | Un moteur de jeu (Flame, Unity) est inutile pour un quiz. <strong>Unity est même à éviter</strong> : il gère mal l&#x27;écriture arabe sans module complémentaire, et le poids de l&#x27;application exploserait. |<br>| <strong>Backend + base de données</strong> | <strong>Supabase</strong> (PostgreSQL, authentification, stockage de fichiers, fonctions SQL) | Les données sont <strong>relationnelles</strong> (mondes → niveaux → questions, progression par joueur). PostgreSQL permet d&#x27;imposer les règles dans le schéma lui-même : exactement 3 choix, une seule bonne réponse. Les règles d&#x27;accès par ligne (RLS) protègent les données : un joueur ne lit que les questions publiées, seul un admin peut écrire. La <strong>connexion anonyme</strong> permet à un enfant de jouer sans e-mail ; le compte peut être converti plus tard. |<br>| <strong>Panneau admin</strong> | <strong>Refine (React) + Supabase</strong>, hébergé sur Vercel | Refine génère les écrans de liste, création, modification et suppression directement à partir des tables Supabase : la première version est prête en quelques jours. Il s&#x27;appuie sur la même authentification et les mêmes règles d&#x27;accès que l&#x27;application. |<br>| <strong>Mode hors ligne</strong> | Drift (SQLite) côté Flutter | Les niveaux publiés sont téléchargés une fois ; un enfant peut jouer sans connexion. Les résultats sont mis en file d&#x27;attente puis synchronisés. |</p>
+<p dir="auto">Il y a aussi un point propre au contenu religieux : chaque question suit un <strong>circuit de validation</strong> (<code>brouillon → en relecture → publiée</code>), avec la source (référence du hadith ou du verset) et le nom du relecteur. Une question non validée par une personne compétente n&#x27;arrive jamais dans l&#x27;application.</p>
+<p dir="auto">---</p>
+<p dir="auto"><strong class="h">2. Modèle de données (PostgreSQL / Supabase)</strong></p>
+<p dir="auto">Le choix principal : comme il faut <strong>exactement 3 choix</strong>, ils sont stockés dans 3 colonnes de la table <code>questions</code>, avec <code>correct_choice</code> entre 1 et 3. La base de données impose ainsi elle-même « 3 choix, 1 bonne réponse », sans table de jointure ni déclencheur. Le formulaire d&#x27;administration reste aussi très simple.</p>
+<pre dir="ltr">-- ========== CONTENU ==========
+create table worlds (                       -- un décor = un monde (canyon, jungle de nuit...)
+  id              smallserial primary key,
+  name            text not null,
+  map_background  text not null,            -- chemin dans Supabase Storage
+  quiz_background text not null,
+  sort_order      int  not null unique
+);
+
+create table categories (                   -- Prière, Invocations, Prophètes, Coran...
+  id      smallserial primary key,
+  name_ar text not null,
+  name_fr text not null
+);
+
+create table levels (
+  id                serial primary key,
+  world_id          smallint not null references worlds(id),
+  number            int not null unique,    -- ordre global sur la carte (1, 2, 3...)
+  title             text,
+  coins_per_correct int not null default 10,
+  is_published      boolean not null default false,
+  updated_at        timestamptz not null default now()
+);
+
+create type question_status as enum (&#x27;draft&#x27;, &#x27;review&#x27;, &#x27;published&#x27;);
+
+create table questions (
+  id             uuid primary key default gen_random_uuid(),
+  level_id       int references levels(id) on delete set null,
+  position       int not null,              -- ordre dans le niveau
+  category_id    smallint references categories(id),
+  text_ar        text not null,
+  choice_1       text not null,
+  choice_2       text not null,
+  choice_3       text not null,
+  correct_choice smallint not null check (correct_choice between 1 and 3),
+  explanation    text,                      -- affichée après une erreur (pédagogique)
+  source_ref     text,                      -- ex : &quot;Sahih al-Bukhari 6312&quot;
+  status         question_status not null default &#x27;draft&#x27;,
+  reviewed_by    uuid references auth.users(id),
+  updated_at     timestamptz not null default now(),
+  check (choice_1 &lt;&gt; choice_2 and choice_1 &lt;&gt; choice_3 and choice_2 &lt;&gt; choice_3),
+  unique (level_id, position) deferrable initially deferred  -- permet de réordonner par glisser-déposer
+);
+create index on questions (level_id, position) where status = &#x27;published&#x27;;
+
+-- ========== JOUEURS ==========
+create table profiles (
+  id            uuid primary key references auth.users(id) on delete cascade,
+  display_name  text,
+  avatar        text,
+  coins         int not null default 0 check (coins &gt;= 0),
+  role          text not null default &#x27;player&#x27; check (role in (&#x27;player&#x27;,&#x27;editor&#x27;,&#x27;admin&#x27;)),
+  created_at    timestamptz not null default now()
+);
+
+create table level_progress (               -- meilleur résultat par niveau : alimente la carte
+  user_id            uuid references profiles(id) on delete cascade,
+  level_id           int  references levels(id)   on delete cascade,
+  best_stars         smallint not null default 0 check (best_stars between 0 and 3),
+  best_correct       int not null default 0,
+  attempts           int not null default 0,
+  first_completed_at timestamptz,
+  updated_at         timestamptz not null default now(),
+  primary key (user_id, level_id)
+);
+
+create table attempts (                     -- historique : statistiques et questions trop difficiles
+  id            bigserial primary key,
+  user_id       uuid not null references profiles(id) on delete cascade,
+  level_id      int  not null references levels(id),
+  answers       smallint[] not null,        -- choix donné pour chaque question (1..3)
+  correct       int not null,
+  total         int not null,
+  stars         smallint not null,
+  coins_earned  int not null,
+  created_at    timestamptz not null default now()
+);
+</pre>
+<p dir="auto"><strong class="h">Le score est calculé côté serveur</strong></p>
+<p dir="auto">L&#x27;application envoie uniquement les réponses du joueur. Le serveur recalcule le nombre de bonnes réponses, les étoiles et les pièces, ce qui empêche la triche sur ces valeurs.</p>
+<pre dir="ltr">create or replace function submit_attempt(p_level_id int, p_answers smallint[])
+returns table (stars smallint, coins_earned int, correct int, total int)
+language plpgsql security definer set search_path = public as $$
+declare
+  v_uid uuid := auth.uid();
+  v_cpc int; v_total int; v_correct int; v_stars smallint; v_prev smallint; v_coins int;
+begin
+  if v_uid is null then raise exception &#x27;not authenticated&#x27;; end if;
+
+  select l.coins_per_correct into v_cpc from levels l where l.id = p_level_id and l.is_published;
+  if not found then raise exception &#x27;level not found&#x27;; end if;
+
+  select count(*), count(*) filter (where q.correct_choice = p_answers[q.ord])
+    into v_total, v_correct
+  from (select correct_choice, (row_number() over (order by position))::int as ord
+        from questions where level_id = p_level_id and status = &#x27;published&#x27;) q;
+
+  if v_total = 0 or coalesce(array_length(p_answers, 1), 0) &lt;&gt; v_total then
+    raise exception &#x27;invalid answers&#x27;;
+  end if;
+
+  v_stars := case when v_correct = v_total                then 3
+                  when v_correct &gt;= ceil(v_total * 0.7)  then 2
+                  when v_correct &gt;= ceil(v_total * 0.4)  then 1
+                  else 0 end;
+
+  select lp.best_stars into v_prev from level_progress lp
+   where lp.user_id = v_uid and lp.level_id = p_level_id;
+  v_prev  := coalesce(v_prev, 0);
+  -- pièces versées seulement si le joueur améliore son score (évite de rejouer en boucle pour farmer)
+  v_coins := case when v_stars &gt; v_prev then v_correct * v_cpc else 0 end;
+
+  insert into attempts (user_id, level_id, answers, correct, total, stars, coins_earned)
+  values (v_uid, p_level_id, p_answers, v_correct, v_total, v_stars, v_coins);
+
+  insert into level_progress as lp (user_id, level_id, best_stars, best_correct, attempts, first_completed_at)
+  values (v_uid, p_level_id, v_stars, v_correct, 1, case when v_stars &gt; 0 then now() end)
+  on conflict (user_id, level_id) do update set
+    best_stars         = greatest(lp.best_stars, excluded.best_stars),
+    best_correct       = greatest(lp.best_correct, excluded.best_correct),
+    attempts           = lp.attempts + 1,
+    first_completed_at = coalesce(lp.first_completed_at, excluded.first_completed_at),
+    updated_at         = now();
+
+  update profiles set coins = coins + v_coins where id = v_uid;
+
+  return query select v_stars, v_coins, v_correct, v_total;
+end $$;
+</pre>
+<p dir="auto"><strong class="h">Règles d&#x27;accès (RLS), en résumé</strong></p>
+<pre dir="ltr">alter table questions enable row level security;
+create policy &quot;joueurs: lecture du publié&quot; on questions for select
+  using (status = &#x27;published&#x27; and exists (select 1 from levels l where l.id = level_id and l.is_published));
+create policy &quot;admins: tout&quot; on questions for all
+  using (exists (select 1 from profiles p where p.id = auth.uid() and p.role in (&#x27;editor&#x27;,&#x27;admin&#x27;)));
+
+alter table level_progress enable row level security;
+create policy &quot;ma progression&quot; on level_progress for select using (user_id = auth.uid());
+-- aucune écriture directe : uniquement via submit_attempt()
+</pre>
+<p dir="auto"><strong>Déverrouillage sur la carte :</strong> le niveau N est jouable si le niveau N‑1 a <code>best_stars ≥ 1</code>. L&#x27;application le calcule à partir de <code>level_progress</code>. La barre de progression globale vaut <code>somme(best_stars) / (3 × nombre de niveaux)</code>.</p>
+<p dir="auto"><strong>Panneau admin (Refine) :</strong><br>- une liste filtrable par niveau, catégorie et statut ;<br>- un formulaire avec le texte de la question, les 3 champs de choix et un bouton radio pour la bonne réponse ;<br>- le réordonnancement des questions par glisser-déposer ;<br>- un import CSV pour ajouter des questions en masse ;<br>- un bouton « Valider et publier » réservé au rôle <code>admin</code>.</p>
+<p dir="auto">---</p>
+<p dir="auto"><strong class="h">3. Code de l&#x27;écran de question (Flutter)</strong></p>
+<p dir="auto">Ce fichier fonctionne <strong>même sans images</strong> : chaque élément illustré a un rendu de remplacement (dégradé, carte colorée, mascotte dessinée). Remplacez ensuite par vos propres illustrations dans <code>assets/</code>.</p>
+<p dir="auto"><code>lib/features/quiz/quiz_screen.dart</code></p>
+<pre dir="ltr">import &#x27;dart:math&#x27; as math;
+import &#x27;package:flutter/material.dart&#x27;;
+import &#x27;package:flutter/services.dart&#x27;;
+
+// ─────────────────────────── Modèles ───────────────────────────
+class QuizQuestion {
+  QuizQuestion({
+    required this.id,
+    required this.text,
+    required this.choices,
+    required this.correctIndex, // 0..2 (en base : 1..3)
+  })  : assert(choices.length == 3),
+        assert(correctIndex &gt;= 0 &amp;&amp; correctIndex &lt; 3);
+
+  final String id;
+  final String text;
+  final List&lt;String&gt; choices;
+  final int correctIndex;
+}
+
+class LevelResult {
+  const LevelResult({required this.correct, required this.total, required this.coinsEarned, required this.answers});
+  final int correct, total, coinsEarned;
+  final List&lt;int&gt; answers; // 1..3 → envoyé tel quel à submit_attempt()
+}
+
+enum _Feedback { none, correct, wrong }
+enum _ChoiceState { idle, correct, wrong, dimmed }
+
+// Palette
+const _kPurpleText = Color(0xFF8E1F8E);
+const _kBrown = Color(0xFF5A2E1A);
+const _kWood = Color(0xFFF5C042);
+const _kParchment = Color(0xFFFBEEDF);
+const _kGreen = Color(0xFF3BD16F);
+const _kRed = Color(0xFFE5484D);
+
+// ─────────────────────────── Écran ───────────────────────────
+class QuizScreen extends StatefulWidget {
+  const QuizScreen({
+    super.key,
+    required this.questions,
+    required this.onFinished,
+    this.background = &#x27;assets/backgrounds/forest_day.png&#x27;,
+    this.coinsPerCorrect = 10,
+    this.initialCoins = 0,
+  });
+
+  final List&lt;QuizQuestion&gt; questions;
+  final ValueChanged&lt;LevelResult&gt; onFinished;
+  final String background;
+  final int coinsPerCorrect;
+  final int initialCoins;
+
+  @override
+  State&lt;QuizScreen&gt; createState() =&gt; _QuizScreenState();
+}
+
+class _QuizScreenState extends State&lt;QuizScreen&gt; with SingleTickerProviderStateMixin {
+  int _index = 0;
+  int _correct = 0;
+  int _earned = 0;
+  late int _coins = widget.initialCoins;
+  int? _selected;
+  _Feedback _feedback = _Feedback.none;
+  final List&lt;int&gt; _answers = [];
+
+  late final AnimationController _mascot =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
+
+  QuizQuestion get _q =&gt; widget.questions[_index];
+  bool get _locked =&gt; _selected != null;
+
+  @override
+  void dispose() {
+    _mascot.dispose();
+    super.dispose();
+  }
+
+  Future&lt;void&gt; _onChoice(int i) async {
+    if (_locked) return;
+    final ok = i == _q.correctIndex;
+    ok ? HapticFeedback.lightImpact() : HapticFeedback.heavyImpact();
+
+    setState(() {
+      _selected = i;
+      _answers.add(i + 1);
+      _feedback = ok ? _Feedback.correct : _Feedback.wrong;
+      if (ok) {
+        _correct++;
+        _earned += widget.coinsPerCorrect;
+        _coins += widget.coinsPerCorrect;
+      }
+    });
+    _mascot.forward(from: 0);
+
+    // Plus long en cas d&#x27;erreur : l&#x27;enfant a le temps de voir la bonne réponse.
+    await Future.delayed(Duration(milliseconds: ok ? 900 : 1700));
+    if (!mounted) return;
+
+    if (_index == widget.questions.length - 1) {
+      widget.onFinished(LevelResult(
+        correct: _correct,
+        total: widget.questions.length,
+        coinsEarned: _earned,
+        answers: List.unmodifiable(_answers),
+      ));
+      return;
+    }
+    setState(() {
+      _index++;
+      _selected = null;
+      _feedback = _Feedback.none;
+    });
+  }
+
+  _ChoiceState _stateFor(int i) {
+    if (!_locked) return _ChoiceState.idle;
+    if (i == _q.correctIndex) return _ChoiceState.correct; // toujours montrer la bonne réponse
+    if (i == _selected) return _ChoiceState.wrong;
+    return _ChoiceState.dimmed;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final total = widget.questions.length;
+    final answered = _index + (_locked ? 1 : 0);
+
+    return Directionality(
+      textDirection: TextDirection.rtl, // le 1er choix s&#x27;affiche à droite, comme en arabe
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Décor (forêt, jungle de nuit...) selon le monde du niveau
+            Positioned.fill(
+              child: Image.asset(
+                widget.background,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =&gt; const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0xFF55D8F2), Color(0xFF8EE3F5), Color(0xFF9BE15D)],
+                      stops: [0, .6, 1],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  // ── Haut : parchemin + bouton menu ──
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _QuestionBoard(text: _q.text, key: ValueKey(_q.id))),
+                        const SizedBox(width: 8),
+                        _RoundIconButton(icon: Icons.apps_rounded, onTap: () =&gt; Navigator.of(context).maybePop()),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── Centre : exactement 3 choix ──
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      transitionBuilder: (child, a) =&gt; FadeTransition(
+                        opacity: a,
+                        child: SlideTransition(
+                          position: Tween(begin: const Offset(0, -.15), end: Offset.zero).animate(a),
+                          child: child,
+                        ),
+                      ),
+                      child: Row(
+                        key: ValueKey(_index),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var i = 0; i &lt; 3; i++)
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: _ChoiceCard(
+                                  text: _q.choices[i],
+                                  state: _stateFor(i),
+                                  onTap: () =&gt; _onChoice(i),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+
+                  // ── Bas : mascotte + coffre + pièces ──
+                  _BottomScene(controller: _mascot, feedback: _feedback, coins: _coins),
+
+                  // ── Tout en bas : progression du niveau ──
+                  _LevelProgressBar(current: answered, total: total),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────── Parchemin ───────────────────────────
+class _QuestionBoard extends StatelessWidget {
+  const _QuestionBoard({super.key, required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder&lt;double&gt;(
+      tween: Tween(begin: .85, end: 1),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.elasticOut,
+      builder: (_, s, child) =&gt; Transform.scale(scale: s, child: child),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 130),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          color: _kParchment,
+          image: DecorationImage(
+            image: const AssetImage(&#x27;assets/ui/parchment.png&#x27;),
+            fit: BoxFit.fill,
+            onError: (_, __) {},
+          ),
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: const [BoxShadow(color: Color(0xFF6B4A35), offset: Offset(0, 6))],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontFamily: &#x27;Tajawal&#x27;,
+            fontSize: 26,
+            height: 1.7,
+            fontWeight: FontWeight.w700,
+            color: _kPurpleText,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────── Carte de réponse (bois) ───────────────────────────
+class _ChoiceCard extends StatefulWidget {
+  const _ChoiceCard({required this.text, required this.state, required this.onTap});
+  final String text;
+  final _ChoiceState state;
+  final VoidCallback onTap;
+
+  @override
+  State&lt;_ChoiceCard&gt; createState() =&gt; _ChoiceCardState();
+}
+
+class _ChoiceCardState extends State&lt;_ChoiceCard&gt; {
+  bool _pressed = false;
+
+  double get _fontSize {
+    final n = widget.text.length; // les invocations longues doivent tenir dans la carte
+    if (n &lt;= 12) return 22;
+    if (n &lt;= 24) return 18;
+    if (n &lt;= 45) return 15;
+    return 13;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.state;
+    final borderColor = switch (s) {
+      _ChoiceState.correct =&gt; _kGreen,
+      _ChoiceState.wrong =&gt; _kRed,
+      _ =&gt; _kBrown,
+    };
+
+    return GestureDetector(
+      onTapDown: (_) =&gt; setState(() =&gt; _pressed = true),
+      onTapUp: (_) =&gt; setState(() =&gt; _pressed = false),
+      onTapCancel: () =&gt; setState(() =&gt; _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        duration: const Duration(milliseconds: 140),
+        scale: _pressed ? .93 : (s == _ChoiceState.correct ? 1.06 : 1),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: s == _ChoiceState.dimmed ? .5 : 1,
+          child: AspectRatio(
+            aspectRatio: .86,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: _kWood,
+                      image: DecorationImage(
+                        image: const AssetImage(&#x27;assets/ui/wood_card.png&#x27;),
+                        fit: BoxFit.fill,
+                        onError: (_, __) {},
+                      ),
+                      border: Border.all(color: borderColor, width: 4),
+                      borderRadius: BorderRadius.circular(3),
+                      boxShadow: [
+                        const BoxShadow(color: Colors.black26, offset: Offset(0, 5)),
+                        if (s == _ChoiceState.correct || s == _ChoiceState.wrong)
+                          BoxShadow(color: borderColor.withOpacity(.7), blurRadius: 18, spreadRadius: 2),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      widget.text,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: &#x27;Tajawal&#x27;,
+                        fontSize: _fontSize,
+                        height: 1.6,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF3B2314),
+                      ),
+                    ),
+                  ),
+                ),
+                if (s == _ChoiceState.correct || s == _ChoiceState.wrong)
+                  Positioned(
+                    top: -14,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: CircleAvatar(
+                        radius: 15,
+                        backgroundColor: borderColor,
+                        child: Icon(s == _ChoiceState.correct ? Icons.check : Icons.close,
+                            color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────── Scène du bas ───────────────────────────
+class _BottomScene extends StatelessWidget {
+  const _BottomScene({required this.controller, required this.feedback, required this.coins});
+  final AnimationController controller;
+  final _Feedback feedback;
+  final int coins;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, c) {
+      final w = c.maxWidth;
+      return SizedBox(
+        height: 230,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Mascotte : saute si c&#x27;est juste, tremble si c&#x27;est faux
+            Positioned(
+              left: 0,
+              bottom: 0,
+              child: AnimatedBuilder(
+                animation: controller,
+                builder: (_, child) {
+                  final t = controller.value;
+                  final dy = feedback == _Feedback.correct ? -math.sin(t * math.pi) * 34 : 0.0;
+                  final dx = feedback == _Feedback.wrong ? math.sin(t * math.pi * 6) * 10 * (1 - t) : 0.0;
+                  return Transform.translate(offset: Offset(dx, dy), child: child);
+                },
+                child: Image.asset(
+                  &#x27;assets/characters/mascot.png&#x27;,
+                  height: w * .55,
+                  errorBuilder: (_, __, ___) =&gt; _MascotPlaceholder(size: w * .42),
+                ),
+              ),
+            ),
+            // Coffre au trésor
+            Positioned(
+              left: w * .40,
+              bottom: 0,
+              child: AnimatedScale(
+                scale: feedback == _Feedback.correct ? 1.08 : 1,
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutBack,
+                child: Image.asset(
+                  &#x27;assets/ui/chest.png&#x27;,
+                  height: w * .30,
+                  errorBuilder: (_, __, ___) =&gt;
+                      Icon(Icons.inventory_2_rounded, size: w * .26, color: const Color(0xFF8B5A2B)),
+                ),
+              ),
+            ),
+            // Bulle de pièces
+            Positioned(right: 10, bottom: 6, child: _CoinBubble(coins: coins)),
+          ],
+        ),
+      );
+    });
+  }
+}
+
+class _MascotPlaceholder extends StatelessWidget {
+  const _MascotPlaceholder({required this.size});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget eye() =&gt; Container(
+          width: size * .2,
+          height: size * .2,
+          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+          alignment: Alignment.center,
+          child: Container(width: size * .05, height: size * .05,
+              decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle)),
+        );
+    return Container(
+      width: size,
+      height: size * 1.1,
+      decoration: BoxDecoration(color: const Color(0xFFA62BA0), borderRadius: BorderRadius.circular(size * .18)),
+      padding: EdgeInsets.only(top: size * .25),
+      alignment: Alignment.topCenter,
+      child: Row(mainAxisSize: MainAxisSize.min, children: [eye(), SizedBox(width: size * .04), eye()]),
+    );
+  }
+}
+
+class _CoinBubble extends StatelessWidget {
+  const _CoinBubble({required this.coins});
+  final int coins;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 76,
+      height: 76,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const RadialGradient(colors: [Color(0xFF7FE3FF), Color(0xFF1BA3D6)], center: Alignment(-.3, -.4)),
+        border: Border.all(color: Colors.white, width: 3),
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3))],
+      ),
+      alignment: Alignment.center,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        transitionBuilder: (child, a) =&gt; ScaleTransition(scale: a, child: child),
+        child: Text(
+          &#x27;$coins&#x27;,
+          key: ValueKey(coins),
+          style: const TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            shadows: [Shadow(color: Color(0xFF0B5E80), offset: Offset(0, 2))],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────── Progression du niveau ───────────────────────────
+class _LevelProgressBar extends StatelessWidget {
+  const _LevelProgressBar({required this.current, required this.total});
+  final int current, total;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = total == 0 ? 0.0 : current / total;
+    return Container(
+      color: const Color(0xFFE0922E),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+      child: Row(
+        children: [
+          // En RTL, le 1er enfant est à droite → &quot;4/14&quot; à droite comme dans la maquette
+          Text(&#x27;$current/$total&#x27;,
+              textDirection: TextDirection.ltr,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white,
+                  shadows: [Shadow(color: Colors.black38, offset: Offset(0, 2))])),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              height: 26,
+              decoration: BoxDecoration(
+                color: const Color(0xFF6B4C9A),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.white, width: 3),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(11),
+                child: TweenAnimationBuilder&lt;double&gt;(
+                  tween: Tween(end: value),
+                  duration: const Duration(milliseconds: 450),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, __) =&gt; Align(
+                    alignment: Alignment.centerLeft,
+                    child: FractionallySizedBox(
+                      widthFactor: v.clamp(0, 1),
+                      heightFactor: 1,
+                      child: const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Color(0xFFFFE066), Color(0xFFF59E0B)],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+</pre>
+<p dir="auto"><strong class="h">Exemple d&#x27;utilisation (<code>lib/main.dart</code>)</strong></p>
+<pre dir="ltr">import &#x27;package:flutter/material.dart&#x27;;
+import &#x27;features/quiz/quiz_screen.dart&#x27;;
+
+void main() =&gt; runApp(const MaterialApp(debugShowCheckedModeBanner: false, home: DemoQuiz()));
+
+class DemoQuiz extends StatelessWidget {
+  const DemoQuiz({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return QuizScreen(
+      initialCoins: 20,
+      questions: [
+        QuizQuestion(
+          id: &#x27;q1&#x27;,
+          text: &#x27;ماذا تقولُ إذا استيقظتَ من نومِك؟&#x27;,
+          choices: [&#x27;الحمدُ للهِ الذي أحياني بعدَ ما أماتني وإليه النُّشورُ&#x27;, &#x27;باسمِكَ اللهمَّ أموتُ وأحيا&#x27;, &#x27;بسم الله&#x27;],
+          correctIndex: 0,
+        ),
+        QuizQuestion(
+          id: &#x27;q2&#x27;,
+          text: &#x27;كم عددُ ركعاتِ صلاةِ الصُّبح؟&#x27;,
+          choices: [&#x27;ركعتان&#x27;, &#x27;ثلاث ركعات&#x27;, &#x27;أربع ركعات&#x27;],
+          correctIndex: 0,
+        ),
+      ],
+      onFinished: (r) {
+        // En vrai : supabase.rpc(&#x27;submit_attempt&#x27;, params: {&#x27;p_level_id&#x27;: id, &#x27;p_answers&#x27;: r.answers})
+        // puis afficher l&#x27;écran des étoiles et revenir à la carte.
+        debugPrint(&#x27;Score ${r.correct}/${r.total}, +${r.coinsEarned} pièces&#x27;);
+      },
+    );
+  }
+}
+</pre>
+<p dir="auto"><strong class="h"><code>pubspec.yaml</code> (extrait)</strong></p>
+<pre dir="ltr">dependencies:
+  flutter: { sdk: flutter }
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.2.0
+  supabase_flutter: ^2.5.0
+  drift: ^2.18.0
+
+flutter:
+  assets:
+    - assets/backgrounds/
+    - assets/ui/
+    - assets/characters/
+  fonts:
+    - family: Tajawal          # police arabe lisible pour enfants (Google Fonts, licence libre)
+      fonts:
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+</pre>
+<p dir="auto">---</p>
+<p dir="auto"><strong class="h">Ce qu&#x27;il faut savoir</strong></p>
+<p dir="auto">- <strong>Je n&#x27;ai pas exécuté ce code</strong> : aucun environnement Flutter n&#x27;était disponible ici. Lancez <code>flutter run</code> pour vérifier qu&#x27;il compile et s&#x27;affiche correctement.<br>- <strong>Les images</strong> de vos captures (mascotte, décors, coffre) semblent venir d&#x27;une application existante. Utilisez vos propres illustrations ou un pack sous licence commerciale ; n&#x27;extrayez pas les images de cette application.<br>- <strong>La bonne réponse est envoyée à l&#x27;appareil</strong> pour afficher le retour immédiatement, même hors ligne. Un enfant curieux pourrait la lire, mais les pièces et les étoiles restent recalculées par le serveur. C&#x27;est un compromis raisonnable pour un jeu éducatif.<br>- <strong>Prochaines étapes conseillées :</strong><br>  1. l&#x27;écran de carte (nœuds placés le long d&#x27;un chemin dessiné avec <code>CustomPainter</code>, défilement vertical) ;<br>  2. l&#x27;écran de fin de niveau avec les étoiles ;<br>  3. le formulaire « Question » dans Refine.</p>
+<p dir="auto">Je peux écrire l&#x27;écran de carte ou le formulaire d&#x27;administration si vous le souhaitez.</p></section><section class="user"><h2>Vous <small>2026-10-31 18:38 UTC</small></h2><p dir="auto">make it , in arabic</p></section><section class="ai"><h2>Claude <small>2026-10-31 18:38 UTC</small></h2><p dir="auto"><strong class="h">تطبيق مسابقة إسلامية: البنية وقاعدة البيانات وشاشة السؤال</strong></p>
+<p dir="auto">أنصحك باستخدام <strong>Flutter</strong> لتطبيق الجوال، و<strong>Supabase</strong> للخادم وقاعدة البيانات، و<strong>Refine</strong> (إطار عمل مبني على React) للوحة الإدارة. ستجد تبرير كل اختيار، ثم مخطط قاعدة البيانات، ثم كود شاشة السؤال.</p>
+<p dir="auto">---</p>
+<p dir="auto"><strong class="h">1. التقنيات المقترحة</strong></p>
+<p dir="auto">| الطبقة | الاختيار | السبب |<br>|---|---|---|<br>| <strong>تطبيق الجوال</strong> | <strong>Flutter (Dart)</strong> مع Riverpod لإدارة الحالة وgo_router للتنقل | يرسم Flutter كل بكسل بنفسه، فيظهر التصميم متطابقاً على Android وiOS. هذا مهم لواجهة غنية بالرسومات (رقّ، ألواح خشبية، شخصية). الرسوم المتحركة سلسة بمعدل 60 إطاراً في الثانية دون محرك ألعاب. يدعم العربية والكتابة من اليمين إلى اليسار بشكل أصلي (التشكيل، الحروف المتصلة، <code>Directionality</code>). وكل ذلك بكود واحد للمنصتين. |<br>| <strong>خريطة المستويات</strong> | ويدجتات Flutter (<code>CustomScrollView</code> و<code>Stack</code>، و<code>CustomPainter</code> لرسم الطريق) | لا حاجة لمحرك ألعاب مثل Flame أو Unity في لعبة أسئلة. <strong>ويُفضَّل تجنّب Unity تحديداً</strong>: دعمه للنص العربي ضعيف دون إضافات، ويزيد حجم التطبيق كثيراً. |<br>| <strong>الخادم وقاعدة البيانات</strong> | <strong>Supabase</strong> (PostgreSQL، تسجيل الدخول، تخزين الملفات، دوال SQL) | البيانات <strong>علائقية</strong> (عوالم ← مستويات ← أسئلة، وتقدّم كل لاعب). يفرض PostgreSQL القواعد داخل المخطط نفسه: 3 خيارات بالضبط وإجابة صحيحة واحدة. قواعد الوصول على مستوى الصفوف (RLS) تحمي البيانات: اللاعب يقرأ الأسئلة المنشورة فقط، والمشرف وحده يعدّلها. <strong>الدخول المجهول</strong> يسمح للطفل باللعب دون بريد إلكت</p></section><section class="user"><h2>Vous <small>2026-10-31 18:38 UTC</small></h2><p dir="auto">[Request interrupted by user]</p><p dir="auto">proceed in coding</p></section><section class="ai"><h2>Claude <small>2026-10-31 18:38 UTC</small></h2><p dir="auto">Postgres est disponible localement pour tester le SQL, et le SDK Flutter est téléchargeable pour vérifier le code. Je commence par la base de données.</p><p dir="auto">Maintenant les données de démarrage (questions de niveau 1 à 3) :</p><p dir="auto">Je teste le schéma sur un vrai PostgreSQL, avec une imitation minimale de l&#x27;environnement Supabase (schéma <code>auth</code>, rôles).</p><p dir="auto">Le schéma s&#x27;applique. Maintenant les tests de comportement (score, anti-triche, sécurité RLS) :</p><p dir="auto">Je lance le téléchargement du SDK Flutter en arrière-plan pendant que j&#x27;écris les écrans.</p><p dir="auto">Maintenant l&#x27;écran de question :</p><p dir="auto">Écran de résultats puis carte :</p><p dir="auto">Je corrige une ligne maladroite dans le dessin du chemin :</p><p dir="auto">Flutter est installé. Je génère les dossiers Android/iOS/Web, je télécharge la police arabe Tajawal et je lance l&#x27;analyse du code.</p><p dir="auto">Aucune erreur, seulement 4 avertissements d&#x27;API dépréciée. Je les corrige, puis je lance les tests.</p><p dir="auto">Le test révèle un vrai défaut : sur un écran bas (paysage ou petit téléphone), l&#x27;écran de question déborde. Je rends la mise en page adaptative à la hauteur disponible.</p><p dir="auto">L&#x27;animation en boucle de la mascotte sur la carte empêche <code>pumpAndSettle</code> de terminer. C&#x27;est attendu ; j&#x27;adapte le test pour avancer le temps par étapes fixes.</p><p dir="auto">Le test a trouvé un vrai bug : la carte n&#x27;occupait que 64 pixels de haut, la hauteur de la barre du haut. Dans le <code>Stack</code>, c&#x27;est le seul enfant non positionné qui fixait la taille. Je corrige :</p><p dir="auto">Analyse propre et 5 tests sur 5 réussis. Je compile la version web pour voir le rendu réel dans un navigateur.</p><p dir="auto">Écran blanc : le moteur de rendu web (CanvasKit) est normalement chargé depuis un CDN Google, bloqué ici. Je recompile en l&#x27;intégrant localement.</p><p dir="auto"><code>fonts.gstatic.com</code> est accessible : je peux finalement récupérer Tajawal via l&#x27;API Google Fonts.</p><p dir="auto">La carte est correcte. Je passe au <strong>panneau d&#x27;administration</strong> : React + Vite + Supabase, en arabe et de droite à gauche. Je vérifie d&#x27;abord que le registre npm est accessible.</p><p dir="auto">Il reste la feuille de style du panneau d&#x27;administration. Ensuite je le compile et je le teste contre une vraie API.</p><p dir="auto">Le parcours fonctionne : validation, ajout, publication, réordonnancement. Mais il y a un appel inattendu, un <code>PATCH</code> sur <code>levels</code> que personne n&#x27;a demandé. Je cherche d&#x27;où il vient.</p><p dir="auto">Il reste le README (en arabe), le script de test SQL reproductible, puis un commit.</p><p dir="auto">Le script reproduit les mêmes résultats. Les 7 « ERROR » sont les refus attendus : tricherie, droits insuffisants, données invalides. J&#x27;écris le README.</p><p dir="auto">Le projet est codé, testé et commité dans <code>/home/user/quiz_islami</code>. Toute l&#x27;interface du jeu et du panneau d&#x27;administration est en arabe, de droite à gauche. <strong>Attention :</strong> le commit est seulement local, car aucun dépôt GitHub n&#x27;est relié. Ce conteneur sera effacé après une période d&#x27;inactivité. Donnez-moi un dépôt et je le pousse.</p>
+<p dir="auto"><strong class="h">Ce qui a été construit</strong></p>
+<p dir="auto"><strong>Base de données</strong> (<code>supabase/</code>)<br>- Les tables des mondes, niveaux, questions, profils, progression et tentatives.<br>- La base elle-même refuse une question qui n&#x27;a pas exactement 3 choix différents et une seule bonne réponse.<br>- Le score est calculé par le serveur. Les pièces ne sont données que si le joueur améliore son meilleur score, pour éviter de rejouer en boucle un niveau facile.<br>- Un rédacteur peut écrire des questions, mais seul un administrateur peut les publier.<br>- 15 questions d&#x27;exemple, réparties sur 3 niveaux.</p>
+<p dir="auto"><strong>Application Flutter</strong> (<code>app/</code>)<br>- Accueil, carte des niveaux avec chemin sinueux, étoiles et cadenas, écran de question, écran de résultat.<br>- Après une erreur, la bonne réponse s&#x27;affiche en vert et la mascotte montre l&#x27;explication dans une bulle.<br>- L&#x27;app fonctionne déjà sans images, avec des dessins de remplacement. Vous ajouterez vos illustrations dans <code>assets/</code> (la liste des fichiers est dans le README).<br>- Sans configuration Supabase, l&#x27;app démarre en mode démo avec des données locales.</p>
+<p dir="auto"><strong>Panneau d&#x27;administration</strong> (<code>admin/</code>)<br>- Connexion, gestion des niveaux, ajout, modification et suppression des questions, avec un aperçu qui reproduit l&#x27;écran du jeu.<br>- Choix de la bonne réponse par bouton radio, réordonnancement, bouton « valider et publier », import CSV.<br>- Je l&#x27;ai écrit directement en React plutôt qu&#x27;avec Refine, comme je l&#x27;avais proposé : c&#x27;est plus léger pour un seul écran principal.</p>
+<p dir="auto"><strong class="h">Vérifications</strong><br>- <strong>Base de données :</strong> 14 scénarios testés sur un vrai PostgreSQL, dont étoiles, pièces, tentative de triche, droits d&#x27;accès et publication.<br>- <strong>Flutter :</strong> l&#x27;analyse du code ne signale aucun problème et les 5 tests passent. J&#x27;ai aussi joué un niveau complet dans la version web, ce qui a permis de corriger 3 bugs :<br>  - la carte ne faisait que 64 pixels de haut ;<br>  - l&#x27;écran de question débordait sur les petits écrans ;<br>  - la flèche « suivant » pointait dans le mauvais sens pour l&#x27;arabe.<br>- <strong>Admin :</strong> la compilation passe et les 3 tests aussi. J&#x27;ai testé le parcours complet en simulant l&#x27;API Supabase : connexion, ajout d&#x27;une question, publication, réordonnancement.</p>
+<p dir="auto"><strong class="h">Ce qui n&#x27;a pas été testé</strong><br>- Rien n&#x27;a tourné contre un vrai projet Supabase, ni sur un téléphone Android ou iOS. Le jeu a été vérifié dans sa version web uniquement.<br>- <strong>Les 15 questions d&#x27;exemple doivent être relues par une personne compétente</strong> avant toute publication.</p>
+<p dir="auto">Pour démarrer, le <code>README.md</code> donne les étapes : créer le projet Supabase, exécuter les 2 fichiers SQL, puis donner le rôle <code>admin</code> à votre compte.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:04 UTC</small></h2><p dir="auto">push it to github</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:04 UTC</small></h2><p dir="auto">Aucun dépôt existant ne correspond à ce projet, et le jeton GitHub de la session ne permet pas d&#x27;en créer un. Je consulte la documentation de l&#x27;environnement.</p><p dir="auto">Je n&#x27;ai pas pu pousser le code : il n&#x27;existe pas encore de dépôt GitHub pour ce projet, et cette session ne peut pas en créer. Le jeton GitHub de la session (<code>GH_TOKEN</code>) est invalide, et l&#x27;accès GitHub ne permet que d&#x27;utiliser des dépôts qui existent déjà.</p>
+<p dir="auto">Pour débloquer :</p>
+<p dir="auto">1. Créez un dépôt <strong>vide</strong> sur https://github.com/new, sans README ni <code>.gitignore</code>. Par exemple <code>laanibazakaria/quiz-islami</code>, en privé si vous préférez.<br>2. Si ce n&#x27;est pas déjà fait, vérifiez que l&#x27;application GitHub de Claude a accès à ce dépôt, sur https://claude.ai/connect-github.<br>3. Donnez-moi le nom du dépôt. Je le relie à la session et je pousse le commit <code>ce23b34</code>.</p>
+<p dir="auto">Si vous préférez utiliser un de vos dépôts existants, par exemple <code>laanibazakaria/pro</code>, dites-le. Je pousserai alors sur une nouvelle branche, sans toucher à la branche principale.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:05 UTC</small></h2><p dir="auto">https://github.com/laanibazakaria/konoz.git</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:05 UTC</small></h2><p dir="auto">The repo is empty. Attempting the push once:</p><p dir="auto">Le push vers <code>laanibazakaria/konoz</code> a échoué : GitHub a refusé l&#x27;envoi (erreur 403), parce que l&#x27;application GitHub de Claude n&#x27;a pas accès à ce dépôt. Le dépôt est relié à la session et <code>origin</code> pointe déjà dessus.</p>
+<p dir="auto"><strong>Option 1 : donner l&#x27;accès à Claude, puis je relance le push</strong><br>1. Installez l&#x27;application GitHub de Claude sur <code>konoz</code> : https://github.com/apps/claude/installations/select_target. Choisissez votre compte, puis « Only select repositories » et ajoutez <code>konoz</code>.<br>2. Si elle est déjà installée, reconnectez GitHub ici : https://claude.ai/customize/connectors?auth_start=github&amp;auth_start_force=1<br>3. Dites-moi « c&#x27;est fait » et je relance le push.</p>
+<p dir="auto"><strong>Option 2 : pousser vous-même depuis votre ordinateur</strong><br>Je vous ai envoyé <code>konoz.bundle</code>, une copie complète du dépôt Git avec la branche <code>main</code> et le commit <code>ce23b34</code>. Après l&#x27;avoir téléchargé :</p>
+<pre dir="ltr">git clone konoz.bundle konoz
+</pre>
+<pre dir="ltr">cd konoz &amp;&amp; git remote set-url origin https://github.com/laanibazakaria/konoz.git
+</pre>
+<pre dir="ltr">git push -u origin main
+</pre></section><section class="user"><h2>Vous <small>2026-10-31 19:07 UTC</small></h2><p dir="auto">jai instaler claude verifier</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:08 UTC</small></h2><p dir="auto">L&#x27;installation a fonctionné : le code est maintenant sur GitHub, dans la branche <code>main</code> : https://github.com/laanibazakaria/konoz</p>
+<p dir="auto">J&#x27;ai vérifié que la branche <code>main</code> sur GitHub contient bien le même commit que ma copie locale (<code>ce23b34</code>).</p>
+<p dir="auto">Le dépôt contient les trois parties du projet :<br>- <code>app/</code> : l&#x27;application mobile Flutter ;<br>- <code>admin/</code> : le panneau d&#x27;administration React ;<br>- <code>supabase/</code> : la base de données (structure, questions d&#x27;exemple et tests).</p>
+<p dir="auto">Le <code>README.md</code> à la racine explique les étapes d&#x27;installation, en arabe. Le fichier <code>konoz.bundle</code> que je vous avais envoyé ne sert plus, vous pouvez le supprimer.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:08 UTC</small></h2><p dir="auto">comment on peut lencer</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:08 UTC</small></h2><p dir="auto">Il y a deux façons de lancer le projet : tester le jeu tout de suite en mode démo, ou lancer la version complète avec Supabase et le panneau d&#x27;administration.</p>
+<p dir="auto"><strong class="h">Option 1 : tester le jeu tout de suite (mode démo, environ 10 minutes)</strong></p>
+<p dir="auto">Pas besoin de Supabase : l&#x27;application fonctionne avec 3 niveaux de questions en local.</p>
+<p dir="auto"><strong>Prérequis :</strong> installer Flutter en suivant https://docs.flutter.dev/get-started/install. Il faut aussi soit Google Chrome, soit un téléphone Android branché en USB avec le « débogage USB » activé.</p>
+<pre dir="ltr">git clone https://github.com/laanibazakaria/konoz.git
+</pre>
+<pre dir="ltr">cd konoz/app &amp;&amp; flutter pub get
+</pre>
+<p dir="auto">Pour lancer dans Chrome (le plus simple) :</p>
+<pre dir="ltr">flutter run -d chrome
+</pre>
+<p dir="auto">Ou sur votre téléphone Android branché :</p>
+<pre dir="ltr">flutter run
+</pre>
+<p dir="auto">La commande <code>flutter devices</code> affiche les appareils détectés. En cas de problème, <code>flutter doctor</code> indique ce qui manque.</p>
+<p dir="auto"><strong class="h">Option 2 : la version complète (avec Supabase et le panneau admin)</strong></p>
+<p dir="auto"><strong>1. Créer la base de données</strong><br>1. Créez un compte et un projet gratuit sur https://supabase.com.<br>2. Ouvrez <strong>SQL Editor</strong> et exécutez le contenu de <code>supabase/migrations/0001_init.sql</code>, puis celui de <code>supabase/seed.sql</code>.<br>3. Dans <strong>Authentication → Sign In / Providers</strong>, activez <strong>Anonymous sign-ins</strong>.<br>4. Dans <strong>Authentication → Users → Add user</strong>, créez votre compte administrateur avec votre e-mail et un mot de passe.<br>5. Dans <strong>SQL Editor</strong>, donnez-lui le rôle d&#x27;administrateur :</p>
+<pre dir="ltr">update public.profiles set role = &#x27;admin&#x27;
+where id = (select id from auth.users where email = &#x27;votre@email.com&#x27;);
+</pre>
+<p dir="auto">6. Dans <strong>Project Settings → API</strong>, copiez l&#x27;<strong>URL du projet</strong> et la clé <strong>anon public</strong>.</p>
+<p dir="auto"><strong>2. Lancer l&#x27;application avec Supabase</strong></p>
+<pre dir="ltr">cd konoz/app
+</pre>
+<pre dir="ltr">flutter run -d chrome --dart-define=SUPABASE_URL=https://VOTRE-PROJET.supabase.co --dart-define=SUPABASE_ANON_KEY=VOTRE_CLE
+</pre>
+<p dir="auto"><strong>3. Lancer le panneau d&#x27;administration</strong></p>
+<p dir="auto">Prérequis : Node.js, à installer depuis https://nodejs.org.</p>
+<pre dir="ltr">cd konoz/admin
+</pre>
+<pre dir="ltr">cp .env.example .env.local
+</pre>
+<p dir="auto">Ouvrez <code>.env.local</code> et remplacez les deux valeurs par l&#x27;URL et la clé copiées plus haut. Ensuite :</p>
+<pre dir="ltr">npm install
+</pre>
+<pre dir="ltr">npm run dev
+</pre>
+<p dir="auto">Ouvrez http://localhost:5173 et connectez-vous avec le compte administrateur. Les questions que vous publiez apparaissent ensuite dans le jeu.</p>
+<p dir="auto"><strong class="h">Pour installer le jeu sur un téléphone</strong></p>
+<pre dir="ltr">flutter build apk --release --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
+</pre>
+<p dir="auto">Le fichier à installer se trouve ensuite dans <code>app/build/app/outputs/flutter-apk/app-release.apk</code>.</p>
+<p dir="auto">Si vous voulez essayer le jeu sans rien installer, je peux aussi publier la version web de démo sur une page privée et vous envoyer le lien.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:09 UTC</small></h2><p dir="auto">comment tester l&#x27;application web</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:10 UTC</small></h2><p dir="auto">Je prépare une version web de démo que vous pourrez ouvrir directement dans votre navigateur.</p><p dir="auto">La démo web va contenir le moteur Flutter. Je regarde d&#x27;abord la taille et la liste des fichiers produits par la compilation web.</p><p dir="auto">Je ne garde que les fichiers nécessaires (environ 10 Mo au lieu de 41) et j&#x27;intègre l&#x27;application dans un cadre au format téléphone, centré sur l&#x27;écran.</p><p dir="auto">Je teste cette page en local avant de la publier.</p><p dir="auto">Les deux erreurs 404 viennent des images non fournies (mascotte, décors). C&#x27;est attendu : l&#x27;application affiche alors ses dessins de remplacement. Je regarde le rendu sur ordinateur :</p><p dir="auto">Le rendu local fonctionne. Je publie la démo.</p><p dir="auto">Le format <code>.bin</code> n&#x27;est pas accepté par l&#x27;hébergement. Je vérifie en local que l&#x27;application fonctionne sans <code>AssetManifest.bin</code> ni les shaders <code>.frag</code> : sur le web, Flutter lit la version <code>.json</code>.</p><p dir="auto">La démo fonctionne sans ces fichiers. Je publie :</p><p dir="auto">Vous pouvez tester le jeu directement dans votre navigateur, sans rien installer : <strong>https://claude.ai/artifact/GjXH4N8937v3NhD45dNBoo</strong></p>
+<p dir="auto">Je ne l&#x27;ai pas encore ouvert depuis ce lien. En revanche, j&#x27;ai joué exactement les mêmes fichiers sur un serveur local, et l&#x27;app se charge et se joue correctement. Si la page reste bloquée sur « جارٍ تحميل اللعبة… », dites-le-moi : l&#x27;hébergement pourrait bloquer le moteur de rendu de Flutter, et je corrigerais.</p>
+<p dir="auto"><strong>Comment jouer :</strong><br>1. Cliquez sur <strong>ابدأ اللعب</strong> pour ouvrir la carte des niveaux.<br>2. Cliquez sur le niveau <strong>1</strong>, le rond bleu en bas.<br>3. Répondez aux 5 questions. Après une erreur, la bonne réponse s&#x27;affiche en vert avec une explication.<br>4. Sur l&#x27;écran de résultat, revenez à la carte : vos étoiles s&#x27;affichent et le niveau 2 se débloque.</p>
+<p dir="auto"><strong>Ce qu&#x27;il faut savoir sur cette démo :</strong><br>- C&#x27;est le mode démo, sans Supabase. Les questions sont intégrées à l&#x27;app (3 niveaux de 5 questions), et la progression s&#x27;efface quand vous rechargez la page.<br>- Les vraies illustrations ne sont pas encore là : la mascotte, le coffre et les décors sont les dessins de remplacement.<br>- Sur ordinateur, le jeu s&#x27;affiche dans un cadre au format téléphone ; sur mobile, il prend tout l&#x27;écran.<br>- Le lien est privé. Pour le montrer à quelqu&#x27;un, utilisez le menu <strong>Share</strong> de la page.</p>
+<p dir="auto">J&#x27;ai aussi repéré un défaut sans gravité : tant que les images manquent, l&#x27;app redemande sans cesse au serveur l&#x27;image du parchemin. Le problème disparaîtra quand vous ajouterez vos images ; sinon, je peux le corriger dans le code.</p>
+<p dir="auto">Pour tester sur votre propre ordinateur, avec le panneau d&#x27;administration, reprenez les commandes de mon message précédent (<code>flutter run -d chrome</code>, etc.).</p></section><section class="user"><h2>Vous <small>2026-10-31 19:29 UTC</small></h2><p dir="auto">corrige le problème du parchemin</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:29 UTC</small></h2><p dir="auto">Je cherche tous les endroits où l&#x27;app charge une image depuis <code>assets/</code>. Le parchemin n&#x27;est sans doute pas le seul concerné.</p><p dir="auto">J&#x27;ajoute un test, puis je vérifie dans le navigateur qu&#x27;il n&#x27;y a plus aucune requête vers des images absentes.</p><p dir="auto">6 tests sur 6 passent. Je recompile la version web, puis je compte les requêtes vers des images absentes pendant une partie.</p><p dir="auto">La partie s&#x27;est jouée jusqu&#x27;au résultat. Je mets à jour la démo en ligne, puis je pousse la correction sur GitHub.</p><p dir="auto">Le problème du parchemin est corrigé, la démo en ligne est à jour et la correction est sur GitHub.</p>
+<p dir="auto"><strong>La cause :</strong> Flutter ne garde pas en mémoire une image qui n&#x27;a pas pu se charger. Le parchemin étant animé, l&#x27;app le redemandait au serveur à chaque image de l&#x27;animation. Les cartes en bois, le coffre, la mascotte et les décors avaient le même défaut.</p>
+<p dir="auto"><strong>La correction :</strong> au démarrage, l&#x27;app lit une seule fois la liste des images incluses dans le jeu. Elle ne charge que celles qui existent ; pour les autres, elle affiche directement le dessin de remplacement. Le nouveau fichier est <code>app/lib/core/assets.dart</code>.</p>
+<p dir="auto"><strong>Vérification :</strong><br>- Sur une partie complète dans le navigateur, il n&#x27;y a plus aucune requête d&#x27;image, contre plusieurs dizaines d&#x27;erreurs auparavant.<br>- J&#x27;ai ajouté un test qui vérifie que l&#x27;écran de question ne demande aucune image quand elles ne sont pas fournies. Les 6 tests passent.</p>
+<p dir="auto">Quand vous ajouterez vos vraies images dans <code>app/assets/</code>, elles s&#x27;afficheront normalement, sans rien changer au code.</p>
+<p dir="auto">- Démo mise à jour : https://claude.ai/artifact/GjXH4N8937v3NhD45dNBoo (rechargez la page si elle était déjà ouverte)<br>- Correction sur GitHub : commit <code>a282d3d</code> dans https://github.com/laanibazakaria/konoz</p></section><section class="user"><h2>Vous <small>2026-10-31 19:34 UTC</small></h2><p dir="auto">le demo est bon ; mais est ce dans lapp reeele cest nous qui va ajouter ces questions</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:34 UTC</small></h2><p dir="auto">Oui. Dans la vraie application, c&#x27;est vous, ou les personnes à qui vous donnez accès, qui ajoutez les questions, depuis le panneau d&#x27;administration. Aucune programmation n&#x27;est nécessaire.</p>
+<p dir="auto"><strong class="h">D&#x27;où viennent les questions</strong></p>
+<p dir="auto">- <strong>Dans la démo :</strong> les 15 questions sont écrites directement dans le code de l&#x27;app (<code>app/lib/data/quiz_repository.dart</code>). On ne peut pas les modifier sans republier l&#x27;app.<br>- <strong>Dans la vraie app :</strong> les questions sont stockées dans la base de données Supabase. L&#x27;app les télécharge à l&#x27;ouverture de chaque niveau. Les 15 questions de démo existent aussi dans <code>supabase/seed.sql</code> : elles servent de point de départ, et vous pouvez les modifier ou les supprimer.</p>
+<p dir="auto"><strong class="h">Comment ajouter une question</strong></p>
+<p dir="auto">1. Vous ouvrez le panneau d&#x27;administration et vous vous connectez.<br>2. Vous choisissez un niveau, puis vous cliquez sur <strong>+ سؤال جديد</strong>.<br>3. Vous remplissez :<br>   - la question ;<br>   - les 3 choix, en cochant le bon ;<br>   - éventuellement une explication (affichée à l&#x27;enfant s&#x27;il se trompe), la source (hadith ou verset) et une catégorie.<br>4. La question est enregistrée comme <strong>brouillon</strong>. Elle n&#x27;apparaît pas encore dans le jeu.<br>5. Un administrateur la relit puis clique sur <strong>اعتماد ونشر</strong> (valider et publier).<br>6. Elle apparaît dans le jeu à la prochaine ouverture du niveau. Il n&#x27;y a pas besoin de republier l&#x27;app sur le Play Store.</p>
+<p dir="auto">Pour ajouter beaucoup de questions d&#x27;un coup, vous pouvez les écrire dans Excel ou Google Sheets puis utiliser <strong>استيراد CSV</strong>. Le bouton <strong>نموذج CSV</strong> télécharge un modèle de fichier avec les bonnes colonnes.</p>
+<p dir="auto"><strong class="h">Qui peut faire quoi</strong></p>
+<p dir="auto">| Rôle | Ajouter / modifier | Publier |<br>|---|---|---|<br>| <code>editor</code> (rédacteur) | ✅ | ❌ |<br>| <code>admin</code> (administrateur) | ✅ | ✅ |</p>
+<p dir="auto">Ce découpage est voulu, parce qu&#x27;il s&#x27;agit de contenu religieux. Un rédacteur peut préparer des questions, mais seule une personne de confiance, idéalement compétente sur le plan religieux, les valide avant que les enfants les voient. Cette règle est imposée par la base de données elle-même : un rédacteur ne peut pas la contourner.</p>
+<p dir="auto"><strong class="h">Ce qu&#x27;il reste à faire pour démarrer</strong></p>
+<p dir="auto">Il faut créer le projet Supabase et mettre le panneau d&#x27;administration en ligne. Les étapes sont dans mon message « comment on peut lancer », et je peux vous accompagner pas à pas.</p>
+<p dir="auto">Je peux aussi rédiger des séries de questions pour vous aider à démarrer (prière, ablutions, prophètes, invocations…), au format CSV prêt à importer. Elles arriveraient en brouillon et devraient être vérifiées avant publication.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:35 UTC</small></h2><p dir="auto">maintenent explique larchetcture de lapp , est ce app mobile ou web , comment demarer ...</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:36 UTC</small></h2><p dir="auto"><strong class="h">Vue d&#x27;ensemble</strong></p>
+<p dir="auto">Le projet a <strong>trois parties</strong> qui communiquent par Internet :</p>
+<pre dir="ltr">     ENFANTS (joueurs)                         VOUS (administrateurs)
+  ┌───────────────────────┐                ┌──────────────────────────┐
+  │   APPLICATION DU JEU  │                │  PANNEAU D&#x27;ADMINISTRATION │
+  │       (Flutter)       │                │      (site web React)     │
+  │ Android · iOS · Web   │                │   sur ordinateur          │
+  │  dossier : app/       │                │   dossier : admin/        │
+  └──────────┬────────────┘                └─────────────┬────────────┘
+             │ lit les questions                          │ ajoute / modifie /
+             │ envoie les réponses                        │ publie les questions
+             ▼                                            ▼
+        ┌──────────────────────────────────────────────────────┐
+        │                  SUPABASE (le serveur)                │
+        │  • base de données : niveaux, questions, progression  │
+        │  • comptes : enfants (anonymes) + administrateurs     │
+        │  • calcul du score, des étoiles et des pièces         │
+        │  • règles de sécurité (qui peut lire / écrire quoi)   │
+        │             dossier : supabase/                       │
+        └──────────────────────────────────────────────────────┘
+</pre>
+<p dir="auto">| Partie | Pour qui | Technologie | Où elle tourne |<br>|---|---|---|---|<br>| <strong>Le jeu</strong> | Les enfants | Flutter | Téléphones Android et iPhone, et navigateur |<br>| <strong>Le panneau admin</strong> | Vous et vos rédacteurs | React | Navigateur, sur ordinateur |<br>| <strong>Le serveur</strong> | Personne n&#x27;y touche au quotidien | Supabase (base PostgreSQL) | Dans le cloud, chez Supabase |</p>
+<p dir="auto"><strong class="h">Application mobile ou web ?</strong></p>
+<p dir="auto"><strong>Le jeu est d&#x27;abord une application mobile</strong>, destinée au Google Play Store et à l&#x27;App Store. Flutter permet d&#x27;écrire le code <strong>une seule fois</strong> et d&#x27;en tirer :<br>- une app <strong>Android</strong> ;<br>- une app <strong>iPhone</strong> ;<br>- une version <strong>web</strong>, comme la démo que vous avez testée.</p>
+<p dir="auto">La version web sert surtout à tester ou à faire des démonstrations ; les enfants utiliseront l&#x27;app installée sur le téléphone.</p>
+<p dir="auto"><strong>Le panneau d&#x27;administration est uniquement un site web.</strong> Vous l&#x27;ouvrez dans votre navigateur, sur ordinateur, pour gérer les questions. Les enfants ne le voient jamais.</p>
+<p dir="auto"><strong class="h">Comment les données circulent</strong></p>
+<p dir="auto"><strong>Quand vous ajoutez une question :</strong><br>1. Vous la saisissez dans le panneau admin.<br>2. Elle est enregistrée dans Supabase comme brouillon.<br>3. Un administrateur la publie.<br>4. Elle devient visible dans le jeu.</p>
+<p dir="auto"><strong>Quand un enfant joue :</strong><br>1. L&#x27;app crée automatiquement un compte anonyme, sans e-mail.<br>2. Elle télécharge les questions publiées du niveau choisi.<br>3. L&#x27;enfant répond ; l&#x27;app affiche immédiatement si c&#x27;est juste ou faux.<br>4. À la fin du niveau, l&#x27;app envoie ses réponses au serveur.<br>5. Le serveur recalcule le score, les étoiles et les pièces, puis les enregistre. Un enfant ne peut donc pas tricher en modifiant l&#x27;app.<br>6. La carte se met à jour : nouvelles étoiles, niveau suivant débloqué.</p>
+<p dir="auto"><strong class="h">Organisation du code de l&#x27;app (<code>app/lib/</code>)</strong></p>
+<pre dir="ltr">lib/
+├── main.dart              démarrage + écran d&#x27;accueil
+├── core/                  éléments partagés
+│   ├── theme.dart         couleurs, police arabe
+│   ├── widgets.dart       mascotte, bulle de pièces, barre de progression, étoiles
+│   └── assets.dart        liste des images disponibles
+├── data/                  les données
+│   ├── models.dart        niveau, question, progression…
+│   ├── quiz_repository.dart   connexion à Supabase OU mode démo
+│   └── providers.dart     partage des données entre les écrans
+└── features/              les écrans
+    ├── map/               carte des niveaux
+    ├── quiz/              écran de question
+    └── result/            écran des étoiles
+</pre>
+<p dir="auto">L&#x27;app choisit sa source de données au démarrage. Si on lui donne l&#x27;adresse et la clé Supabase, elle utilise la vraie base de données. Sinon, elle passe en mode démo avec les 15 questions intégrées.</p>
+<p dir="auto"><strong class="h">Comment démarrer, dans l&#x27;ordre</strong></p>
+<p dir="auto"><strong>Étape 1 : le serveur (environ 15 minutes, gratuit)</strong><br>1. Créez un projet sur https://supabase.com.<br>2. Dans <strong>SQL Editor</strong>, exécutez <code>supabase/migrations/0001_init.sql</code>, puis <code>supabase/seed.sql</code>.<br>3. Activez <strong>Anonymous sign-ins</strong>, créez votre compte et donnez-lui le rôle <code>admin</code>. Les commandes exactes sont dans le README.</p>
+<p dir="auto"><strong>Étape 2 : le panneau admin sur votre ordinateur</strong><br>Installez Node.js, puis, dans le dossier <code>admin/</code> :</p>
+<pre dir="ltr">npm install
+</pre>
+<pre dir="ltr">npm run dev
+</pre>
+<p dir="auto">Vous pouvez déjà vous connecter et ajouter des questions.</p>
+<p dir="auto"><strong>Étape 3 : le jeu sur votre téléphone</strong><br>Installez Flutter et Android Studio, branchez votre téléphone Android, puis, dans le dossier <code>app/</code> :</p>
+<pre dir="ltr">flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
+</pre>
+<p dir="auto">Les questions publiées à l&#x27;étape 2 apparaissent dans le jeu.</p>
+<p dir="auto"><strong>Étape 4 : la mise en ligne publique</strong><br>- <strong>Panneau admin :</strong> hébergement gratuit sur Vercel ou Netlify. Vous obtenez une adresse web fixe.<br>- <strong>App Android :</strong> compte développeur Google Play, 25 $ une seule fois.<br>- <strong>App iPhone :</strong> compte Apple Developer, 99 $ par an. Il faut aussi un Mac pour compiler la version iPhone.</p>
+<p dir="auto">Avant la publication publique, il reste à faire :<br>- ajouter vos vraies illustrations (mascotte, parchemin, cartes en bois, décors) ;<br>- écrire et faire valider vos questions ;<br>- tester sur plusieurs téléphones.</p>
+<p dir="auto">Je peux vous guider pas à pas sur l&#x27;étape 1 (Supabase) dès maintenant, ou préparer la mise en ligne du panneau admin sur Vercel.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:39 UTC</small></h2><p dir="auto">svp est ce que tu peu mettre cette aplication comme cette platforme https://github.com/laanibazakaria/soutenance-coach  c&#x27;est a dire platforme web avec boton qui permet de l&#x27;instaler sur telephon</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:39 UTC</small></h2><p dir="auto">Je regarde d&#x27;abord comment <code>soutenance-coach</code> est construit (hébergement, bouton d&#x27;installation), pour reproduire la même approche.</p><p dir="auto">L&#x27;icône est prête. Ensuite : le manifeste, la page d&#x27;accueil web, le bouton d&#x27;installation dans l&#x27;app, et la mise en ligne automatique.</p><p dir="auto">Je code maintenant le bouton d&#x27;installation côté Flutter. Il communique avec la page web pour savoir si l&#x27;installation est possible.</p><p dir="auto">Le <code>State</code> du bouton est réutilisé d&#x27;un <code>pumpWidget</code> à l&#x27;autre, et la nouvelle valeur n&#x27;est jamais prise en compte. J&#x27;ajoute <code>didUpdateWidget</code> pour qu&#x27;il suive les changements.</p><p dir="auto">7 tests sur 7 passent. Le panneau admin doit fonctionner sous <code>/konoz/admin/</code>, je passe donc ses chemins en relatif. Ensuite, le workflow GitHub Actions qui compile et met en ligne le site.</p><p dir="auto">Je reproduis en local la compilation de GitHub Actions, avec le site servi sous <code>/konoz/</code> comme sur GitHub Pages. Je vérifie ensuite avec Chrome que l&#x27;app est reconnue comme installable.</p><p dir="auto">Les deux cas fonctionnent. J&#x27;ajoute une section au README, puis je pousse sur GitHub.</p><p dir="auto">Le code est poussé. Je regarde si le workflow a démarré sur GitHub.</p><p dir="auto">Pendant la compilation sur GitHub, voici l&#x27;étape qui ne peut être faite que par vous, une seule fois.</p>
+<p dir="auto"><strong>Activer GitHub Pages :</strong><br>1. Ouvrez https://github.com/laanibazakaria/konoz/settings/pages<br>2. Dans <strong>Build and deployment → Source</strong>, choisissez <strong>GitHub Actions</strong>.</p>
+<p dir="auto">C&#x27;est tout. Je vous préviens dès que la compilation est terminée.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:47 UTC</small></h2><p dir="auto">c&#x27;est fait, j&#x27;ai activé GitHub Pages</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:47 UTC</small></h2><p dir="auto">Je n&#x27;en ai finalement pas besoin : la surveillance que j&#x27;ai lancée tout à l&#x27;heure tourne toujours, et elle me préviendra dès que le workflow GitHub sera terminé.</p>
+<p dir="auto">La compilation en est à l&#x27;étape « Jeu — compilation web » ; les tests sont déjà passés. Dès qu&#x27;elle se termine, je vérifie que le site répond et je vous envoie le lien.</p><p dir="auto">La mise en ligne a réussi : <strong>https://laanibazakaria.github.io/konoz/</strong></p>
+<p dir="auto">Le workflow GitHub Actions s&#x27;est terminé sans erreur (tests, compilation du jeu et du panneau admin, publication). GitHub confirme le déploiement de la dernière version (commit <code>cb02d15</code>).</p>
+<p dir="auto"><strong>Je n&#x27;ai pas pu ouvrir le site moi-même</strong> : le réseau de mon environnement bloque <code>github.io</code>. Il a été testé en local, avec les mêmes fichiers servis sous <code>/konoz/</code>, mais pas encore sur sa vraie adresse. Ouvrez le lien de votre côté et dites-moi si quelque chose ne va pas. La première publication peut mettre une à deux minutes à apparaître.</p>
+<p dir="auto"><strong class="h">Les liens</strong><br>- <strong>Le jeu :</strong> https://laanibazakaria.github.io/konoz/<br>- <strong>Le panneau admin :</strong> https://laanibazakaria.github.io/konoz/admin/ (il affiche pour l&#x27;instant un message de configuration, en attendant Supabase)</p>
+<p dir="auto"><strong class="h">Installer le jeu sur un téléphone</strong><br>- <strong>Android (Chrome) :</strong> ouvrez le lien. Un bouton <strong>« ثبّت التطبيق على هاتفك »</strong> apparaît sous « ابدأ اللعب ». Appuyez dessus, puis sur <strong>Installer</strong>. L&#x27;icône de la mascotte s&#x27;ajoute à l&#x27;écran d&#x27;accueil, et le jeu s&#x27;ouvre ensuite en plein écran, comme une vraie app.<br>- <strong>iPhone (Safari) :</strong> le même bouton affiche les 3 étapes à suivre. Partager → « Sur l&#x27;écran d&#x27;accueil » → Ajouter.<br>- <strong>Sur ordinateur :</strong> le jeu s&#x27;affiche dans un cadre au format téléphone. Chrome et Edge proposent aussi de l&#x27;installer.</p>
+<p dir="auto">Une fois l&#x27;app installée, le bouton disparaît.</p>
+<p dir="auto">Pour l&#x27;instant, le jeu tourne en <strong>mode démo</strong> : ce sont les 15 questions intégrées, et la progression n&#x27;est pas sauvegardée sur un serveur.</p>
+<p dir="auto"><strong class="h">Ce qui se passe maintenant automatiquement</strong><br>À chaque modification poussée sur <code>main</code>, GitHub relance les tests, recompile et remet le site à jour en quelques minutes. Il n&#x27;y a rien à faire de votre côté.</p>
+<p dir="auto"><strong class="h">Prochaine étape : brancher Supabase</strong><br>1. Créez le projet Supabase : exécutez les 2 fichiers SQL et créez votre compte administrateur (voir le README).<br>2. Sur GitHub, ouvrez <strong>Settings → Secrets and variables → Actions → onglet Variables</strong>, puis ajoutez :<br>   - <code>SUPABASE_URL</code><br>   - <code>SUPABASE_ANON_KEY</code><br>3. Relancez le workflow : onglet <strong>Actions → Déploiement web → Run workflow</strong>.</p>
+<p dir="auto">Le jeu utilisera alors vos vraies questions, et le panneau admin à <code>/admin/</code> vous permettra de les gérer.</p>
+<p dir="auto">Je peux vous guider pas à pas pour l&#x27;étape Supabase.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:53 UTC</small></h2><p dir="auto">*[1 image(s) jointe(s)]*</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:53 UTC</small></h2><p dir="auto">Le site fonctionne en ligne. Votre capture montre en revanche un problème de mise en page sur un écran large mais peu haut (environ 1366 × 650) :</p>
+<p dir="auto">- <strong>Le cadre téléphone ne s&#x27;applique pas</strong> : je ne l&#x27;avais prévu que pour les fenêtres d&#x27;au moins 700 px de haut. Le jeu s&#x27;étire donc sur toute la largeur.<br>- <strong>Le coffre devient énorme</strong> et recouvre les réponses, parce que sa taille dépend de la largeur de l&#x27;écran.</p>
+<p dir="auto">Je corrige les deux, avec en plus une largeur maximale imposée dans l&#x27;app elle-même, pour que la mise en page reste correcte quelle que soit la fenêtre.</p><p dir="auto">Je vérifie le résultat dans les conditions exactes de votre capture : une fenêtre de 1366 × 650.</p><p dir="auto">Le cadre téléphone s&#x27;applique maintenant : 420 × 638 px, centré. Je regarde la capture pour savoir où cliquer ensuite :</p><p dir="auto">J&#x27;ai corrigé l&#x27;affichage sur les écrans larges et peu hauts comme le vôtre. Le correctif est poussé sur GitHub et la mise en ligne est en cours ; il faut compter quelques minutes.</p>
+<p dir="auto"><strong>Ce qui n&#x27;allait pas sur votre capture :</strong><br>- <strong>Le jeu s&#x27;étirait sur toute la largeur.</strong> Le cadre téléphone ne s&#x27;affichait que sur les fenêtres d&#x27;au moins 700 px de haut, et la vôtre en fait environ 650.<br>- <strong>Le coffre recouvrait les réponses.</strong> Sa taille était calculée à partir de la largeur de l&#x27;écran.</p>
+<p dir="auto"><strong>Ce que j&#x27;ai changé :</strong><br>- Le cadre téléphone s&#x27;affiche maintenant dès 560 px de large, quelle que soit la hauteur de la fenêtre.<br>- L&#x27;app limite elle-même la largeur du jeu à 480 px. Même si le cadre ne s&#x27;appliquait pas, le jeu resterait au format téléphone.<br>- La taille du coffre dépend maintenant de la mascotte, donc de la hauteur disponible. Il reste sous les réponses.</p>
+<p dir="auto"><strong>Vérification :</strong><br>- J&#x27;ai rejoué l&#x27;écran de question à 1366 × 650, la taille de votre fenêtre : le jeu est au format téléphone, centré, et le coffre est bien placé.<br>- J&#x27;ai ajouté un test pour cette taille d&#x27;écran. Les 8 tests passent.</p>
+<p dir="auto">Dans quelques minutes, rechargez https://laanibazakaria.github.io/konoz/ avec <strong>Ctrl + Maj + R</strong>, pour forcer le navigateur à ignorer l&#x27;ancienne version. La démo privée (https://claude.ai/artifact/GjXH4N8937v3NhD45dNBoo) est déjà à jour.</p><p dir="auto">Le correctif est en ligne. Le workflow GitHub a réussi, y compris le nouveau test pour un écran de 1366 × 650.</p>
+<p dir="auto">Rechargez https://laanibazakaria.github.io/konoz/ avec <strong>Ctrl + Maj + R</strong> : le jeu devrait s&#x27;afficher dans le cadre téléphone, avec le coffre sous les réponses. Je n&#x27;ai pas pu ouvrir le site en ligne moi-même, car mon environnement bloque <code>github.io</code>. Si l&#x27;affichage n&#x27;est pas bon de votre côté, envoyez-moi une capture.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:58 UTC</small></h2><p dir="auto">*[1 image(s) jointe(s)]*</p>
+<p dir="auto">mais  pour qoi ca svp fai un traville professionel</p></section><section class="ai"><h2>Claude <small>2026-10-31 19:59 UTC</small></h2><p dir="auto">Vous avez raison. Ce n&#x27;est pas le rendu attendu, et je n&#x27;aurais pas dû vous dire que c&#x27;était corrigé sans pouvoir le vérifier sur le site en ligne.</p>
+<p dir="auto">D&#x27;après ce que montre votre capture, je vois deux problèmes, et je les règle tous les deux :</p>
+<p dir="auto">1. <strong>Votre navigateur affiche encore l&#x27;ancienne version.</strong> Avec le correctif, le coffre ne peut plus dépasser environ 115 px ; sur votre capture, il en fait plus de 250. GitHub Pages autorise les navigateurs à garder les fichiers en mémoire, et le fichier principal du jeu (<code>main.dart.js</code>) porte toujours le même nom d&#x27;une version à l&#x27;autre, si bien que le navigateur peut garder l&#x27;ancien. Je vais ajouter un numéro de version à chaque mise en ligne, pour forcer le chargement de la nouvelle.<br>2. <strong>Le coffre lui-même est une icône générique</strong>, une boîte marron sans finition. Je le remplace par un vrai coffre au trésor dessiné : bois, ferrures dorées, serrure.</p>
+<p dir="auto">J&#x27;ajoute aussi un test sur plusieurs tailles d&#x27;écran, et pas seulement celle de votre capture.</p></section><section class="user"><h2>Vous <small>2026-10-31 19:59 UTC</small></h2><p dir="auto">[Request interrupted by user]</p><p dir="auto">ce Le coffre et n&#x27;est pas utilser car on coche les reponce verifier</p></section><section class="ai"><h2>Claude <small>2026-10-31 20:02 UTC</small></h2><p dir="auto">Le coffre a disparu, les 3 réponses sont dégagées et le fichier versionné est bien chargé. Je pousse et je mets à jour la démo.</p><p dir="auto">J&#x27;ai retiré le coffre et réglé le problème de cache. Le correctif est poussé sur GitHub et la mise en ligne est en cours ; je vous préviens quand elle est terminée.</p>
+<p dir="auto"><strong>Ce qui a changé :</strong><br>- <strong>Le coffre est supprimé.</strong> Il ne servait à rien dans le jeu et pouvait recouvrir la carte du milieu. Il reste la question, les 3 réponses, la mascotte, les pièces et la barre de progression.<br>- <strong>Votre navigateur ne gardera plus une ancienne version.</strong> Chaque mise en ligne porte maintenant un numéro de version, ici <code>e1acc50</code>. C&#x27;est pour ça que vous voyiez encore l&#x27;ancien coffre géant : votre navigateur avait gardé l&#x27;ancien fichier du jeu en mémoire.</p>
+<p dir="auto"><strong>Vérification :</strong><br>- Un nouveau test vérifie, sur 7 tailles d&#x27;écran (du petit téléphone de 360 × 640 au grand écran de 1920 × 1080, dont la vôtre en 1366 × 650), trois choses :<br>  - aucun élément ne déborde ;<br>  - les 3 réponses sont entièrement visibles ;<br>  - rien ne les recouvre, donc un toucher atteint bien chaque carte.<br>- Les 14 tests passent, et ils tournent maintenant à chaque mise en ligne.<br>- J&#x27;ai compilé le site comme GitHub le fait, puis je l&#x27;ai ouvert dans un navigateur à 1366 × 650 et au format téléphone. Le fichier versionné est bien chargé, sans aucune erreur.</p>
+<p dir="auto"><strong>Ce qu&#x27;il vous reste à faire, une seule fois :</strong> quand la mise en ligne est terminée, rechargez la page avec <strong>Ctrl + Maj + R</strong>. Ce rechargement forcé n&#x27;est nécessaire que cette fois-ci, pour remplacer l&#x27;ancienne version gardée en mémoire. Les mises à jour suivantes se chargeront normalement.</p>
+<p dir="auto">Je ne peux toujours pas ouvrir le site en ligne depuis mon environnement. Si quelque chose ne va pas après le rechargement, envoyez-moi une capture.</p><p dir="auto">La nouvelle version est en ligne. GitHub l&#x27;a compilée et publiée sans erreur, après avoir fait passer les 14 tests.</p>
+<p dir="auto">Rechargez https://laanibazakaria.github.io/konoz/ avec <strong>Ctrl + Maj + R</strong> : le coffre ne devrait plus apparaître, et les 3 réponses devraient être dégagées. Ce rechargement forcé n&#x27;est nécessaire que cette fois-ci.</p>
+<p dir="auto">Je ne peux pas ouvrir le site en ligne depuis mon environnement. Si ce n&#x27;est pas bon de votre côté, envoyez-moi une capture.</p></section><section class="user"><h2>Vous <small>2026-10-31 20:06 UTC</small></h2><p dir="auto">c&#x27;est bon, maintenant aide-moi à configurer Supabase</p></section><section class="ai"><h2>Claude <small>2026-10-31 20:07 UTC</small></h2><p dir="auto">Je ne peux pas accéder à Supabase depuis mon environnement : le réseau le bloque, comme pour <code>github.io</code>. Vous allez donc faire les manipulations, et je vous guide étape par étape. Après chaque étape, il y a une vérification pour savoir que tout s&#x27;est bien passé. Comptez environ 15 minutes.</p>
+<p dir="auto"><strong class="h">Étape 1 : créer le projet</strong></p>
+<p dir="auto">1. Allez sur https://supabase.com et connectez-vous, par exemple avec votre compte GitHub.<br>2. Cliquez sur <strong>New project</strong> et remplissez :<br>   - <strong>Name</strong> : <code>konoz</code><br>   - <strong>Database Password</strong> : cliquez sur <strong>Generate a password</strong> et <strong>notez-le</strong> dans un endroit sûr.<br>   - <strong>Region</strong> : <strong>Central EU (Frankfurt)</strong>, la plus proche du Maroc et de la France.<br>3. Cliquez sur <strong>Create new project</strong>, puis attendez 1 à 2 minutes que le projet soit prêt.</p>
+<p dir="auto"><strong class="h">Étape 2 : créer la base de données</strong></p>
+<p dir="auto">1. Dans le menu de gauche, ouvrez <strong>SQL Editor</strong>, puis cliquez sur <strong>New query</strong>.<br>2. Ouvrez ce fichier, sélectionnez tout (<strong>Ctrl + A</strong>), copiez-le, puis collez-le dans l&#x27;éditeur :<br>   https://raw.githubusercontent.com/laanibazakaria/konoz/main/supabase/migrations/0001_init.sql<br>3. Cliquez sur <strong>Run</strong>.<br>   ✅ Vous devez voir *« Success. No rows returned »*.<br>4. Ouvrez une <strong>New query</strong> et faites la même chose avec les questions de départ :<br>   https://raw.githubusercontent.com/laanibazakaria/konoz/main/supabase/seed.sql<br>   ✅ Le résultat affiche quelques lignes <code>setval</code>.<br>5. <strong>Vérification :</strong> ouvrez <strong>Table Editor</strong> dans le menu de gauche. Vous devez voir les tables <code>levels</code> (3 lignes) et <code>questions</code> (15 lignes).</p>
+<p dir="auto">Si un message d&#x27;erreur rouge apparaît, copiez-le-moi tel quel.</p>
+<p dir="auto"><strong class="h">Étape 3 : permettre aux enfants de jouer sans compte</strong></p>
+<p dir="auto">1. Ouvrez <strong>Authentication</strong>, puis <strong>Sign In / Providers</strong>.<br>2. Activez <strong>Allow anonymous sign-ins</strong>, puis cliquez sur <strong>Save</strong>.</p>
+<p dir="auto"><strong class="h">Étape 4 : créer votre compte administrateur</strong></p>
+<p dir="auto">1. Ouvrez <strong>Authentication</strong>, puis <strong>Users</strong>, puis <strong>Add user</strong> et <strong>Create new user</strong>.<br>2. Saisissez votre e-mail et un mot de passe, et <strong>cochez « Auto Confirm User »</strong>. Cliquez sur <strong>Create user</strong>.<br>3. Dans <strong>SQL Editor</strong>, ouvrez une <strong>New query</strong>, collez ce texte en mettant <strong>votre</strong> e-mail, puis cliquez sur <strong>Run</strong> :</p>
+<pre dir="ltr">update public.profiles set role = &#x27;admin&#x27;
+where id = (select id from auth.users where email = &#x27;votre@email.com&#x27;);
+</pre>
+<p dir="auto">✅ Le résultat doit indiquer <strong>1 row</strong> modifiée. S&#x27;il indique 0, l&#x27;e-mail ne correspond pas exactement à celui du compte créé.</p>
+<p dir="auto"><strong class="h">Étape 5 : récupérer l&#x27;adresse et la clé du projet</strong></p>
+<p dir="auto">Cliquez sur le bouton <strong>Connect</strong> en haut de la page du projet, ou allez dans <strong>Project Settings → API Keys</strong>. Copiez :<br>- <strong>Project URL</strong> : elle ressemble à <code>https://abcdefgh.supabase.co</code>.<br>- <strong>La clé publique</strong> : elle s&#x27;appelle <strong>publishable</strong> (<code>sb_publishable_…</code>) ou <strong>anon public</strong> (<code>eyJ…</code>). Les deux fonctionnent.</p>
+<p dir="auto">⚠️ Ne copiez <strong>jamais</strong> la clé <strong>secret</strong> ou <strong>service_role</strong>, et ne la partagez avec personne : elle donne tous les droits sur la base.</p>
+<p dir="auto"><strong class="h">Étape 6 : brancher le site sur Supabase</strong></p>
+<p dir="auto">1. Ouvrez https://github.com/laanibazakaria/konoz/settings/variables/actions<br>2. Restez sur l&#x27;onglet <strong>Variables</strong>, et non sur l&#x27;onglet Secrets. Cliquez sur <strong>New repository variable</strong> et créez ces deux variables :</p>
+<p dir="auto">| Name | Value |<br>|---|---|<br>| <code>SUPABASE_URL</code> | l&#x27;adresse du projet |<br>| <code>SUPABASE_ANON_KEY</code> | la clé publique |</p>
+<p dir="auto">3. Relancez la mise en ligne : ouvrez https://github.com/laanibazakaria/konoz/actions/workflows/deploy.yml, cliquez sur <strong>Run workflow</strong>, puis à nouveau sur <strong>Run workflow</strong>. Attendez environ 5 minutes que le cercle devienne vert ✅.</p>
+<p dir="auto"><strong class="h">Étape 7 : tester</strong></p>
+<p dir="auto">1. Ouvrez <strong>le panneau admin</strong> : https://laanibazakaria.github.io/konoz/admin/ (rechargez avec Ctrl + Maj + R). Connectez-vous avec l&#x27;e-mail et le mot de passe de l&#x27;étape 4.<br>   ✅ Vous voyez les 3 niveaux et leurs questions.<br>2. Faites un essai complet :<br>   - modifiez une question, par exemple corrigez un mot, puis enregistrez ;<br>   - ouvrez <strong>le jeu</strong> : https://laanibazakaria.github.io/konoz/ ;<br>   - jouez le niveau correspondant.<br>   ✅ La modification apparaît dans le jeu.<br>3. Terminez un niveau, puis revenez dans Supabase : <strong>Table Editor → <code>level_progress</code></strong>.<br>   ✅ Une ligne est apparue, avec vos étoiles.</p>
+<p dir="auto"><strong class="h">À savoir</strong></p>
+<p dir="auto">- <strong>Projet gratuit :</strong> Supabase met le projet en pause après 7 jours sans aucune activité. Il suffit alors de cliquer sur <strong>Restore</strong> dans le tableau de bord. Si le jeu est utilisé régulièrement, cela n&#x27;arrive pas.<br>- <strong>Ajouter un rédacteur :</strong> créez son compte comme à l&#x27;étape 4, puis exécutez la même requête avec <code>&#x27;editor&#x27;</code> à la place de <code>&#x27;admin&#x27;</code>. Il pourra écrire des questions, mais pas les publier.</p>
+<p dir="auto">Dites-moi à quelle étape vous en êtes, ou envoyez-moi une capture si quelque chose bloque.</p></section><section class="user"><h2>Vous <small>2026-10-31 20:19 UTC</small></h2><p dir="auto">*[1 image(s) jointe(s)]*</p></section><section class="ai"><h2>Claude <small>2026-10-31 20:19 UTC</small></h2><p dir="auto">La mise en ligne a échoué à l&#x27;étape de compilation, après 59 secondes. Je regarde quelle étape a échoué.</p><p dir="auto">Je place la vérification dans un petit script séparé, pour pouvoir la tester ici avec des valeurs piégées :</p><p dir="auto">J&#x27;ajoute aussi une protection contre l&#x27;ancienne clé <code>service_role</code>. Elle commence par <code>eyJ</code> comme la clé publique, il faut donc décoder son contenu pour la reconnaître :</p><p dir="auto">Je relance ici la compilation du jeu avec des valeurs Supabase, pour vérifier qu&#x27;elle passe bien dans ce cas :</p><p dir="auto">Le jeu et le panneau admin se compilent, et l&#x27;adresse Supabase est bien intégrée aux deux. Je pousse : cette mise en ligne utilisera vos vraies variables, ce sera donc le vrai test.</p><p dir="auto">La mise en ligne a échoué à cause d&#x27;un défaut de mon workflow. Je l&#x27;ai corrigé et poussé ; une nouvelle mise en ligne vient de démarrer automatiquement avec vos variables.</p>
+<p dir="auto"><strong>La cause probable :</strong> le workflow insérait vos deux valeurs Supabase directement dans la commande de compilation. Un retour à la ligne ou un espace invisible, collé en même temps que la valeur, suffit à casser cette commande. Je ne peux pas lire le journal d&#x27;erreur de GitHub, car mon réseau le bloque. Mais le même code s&#x27;était compilé juste avant sans les variables, et c&#x27;est précisément l&#x27;étape qui les utilise qui a échoué.</p>
+<p dir="auto"><strong>La correction :</strong> une étape « Configuration Supabase » s&#x27;exécute maintenant avant la compilation. Elle :<br>- retire les espaces et retours à la ligne en trop ;<br>- corrige les erreurs simples, comme un <code>/</code> final ou une adresse terminée par <code>/rest/v1</code> ;<br>- <strong>arrête la mise en ligne avec un message clair</strong> si une valeur est incorrecte : adresse du tableau de bord au lieu de l&#x27;adresse du projet, variable vide, ou <strong>clé secrète collée par erreur</strong>. Dans ce dernier cas, le message demande aussi de la régénérer dans Supabase.</p>
+<p dir="auto">J&#x27;ai testé ces 9 situations ici, puis compilé le jeu et le panneau admin avec des valeurs du même format que les vôtres.</p>
+<p dir="auto">J&#x27;attends le résultat de la nouvelle mise en ligne, environ 5 minutes. S&#x27;il y a encore une erreur, GitHub affichera cette fois un message clair dans <strong>Annotations</strong>, et je vous dirai quoi corriger.</p><p dir="auto">La mise en ligne a réussi, avec vos variables Supabase : compilation et publication OK.</p>
+<p dir="auto">Je ne peux pas vérifier depuis ici que le site est bien relié à votre projet Supabase, car mon réseau bloque le site comme Supabase. Faites le test de l&#x27;<strong>étape 7</strong> :</p>
+<p dir="auto">1. <strong>Panneau admin :</strong> ouvrez https://laanibazakaria.github.io/konoz/admin/ et rechargez avec <strong>Ctrl + Maj + R</strong>.<br>   - ✅ Si un écran de connexion apparaît, connectez-vous avec le compte administrateur créé à l&#x27;étape 4 : vous devez voir les 3 niveaux et leurs questions.<br>   - ❌ Si vous voyez encore le message « انسخ الملف .env.example… », c&#x27;est que les variables n&#x27;ont pas été prises en compte. Dans ce cas, envoyez-moi une capture de la page des variables GitHub, <strong>sans afficher la valeur de la clé</strong>.<br>2. <strong>Essai complet :</strong> dans le panneau admin, modifiez une question et enregistrez-la. Ouvrez ensuite le jeu (https://laanibazakaria.github.io/konoz/), jouez le niveau correspondant et vérifiez que la modification apparaît.<br>3. <strong>Progression :</strong> terminez un niveau, puis dans Supabase ouvrez <strong>Table Editor → <code>level_progress</code></strong>. Une ligne avec vos étoiles doit être apparue.</p>
+<p dir="auto">Si l&#x27;une de ces étapes ne fonctionne pas, envoyez-moi une capture de l&#x27;écran ou du message d&#x27;erreur.</p></section><section class="user"><h2>Vous <small>2026-10-31 20:26 UTC</small></h2><p dir="auto">c&#x27;est bon, ça marche</p></section><section class="ai"><h2>Claude <small>2026-10-31 20:26 UTC</small></h2><p dir="auto">La plateforme fonctionne maintenant de bout en bout, avec votre base Supabase :</p>
+<p dir="auto">- <strong>Le jeu</strong> : https://laanibazakaria.github.io/konoz/<br>  - On peut l&#x27;installer sur Android, iPhone et ordinateur.<br>  - Il lit les questions publiées dans votre base.<br>  - Il enregistre les étoiles et les pièces de chaque enfant.<br>- <strong>Le panneau admin</strong> : https://laanibazakaria.github.io/konoz/admin/<br>  - On y ajoute, modifie, relit et publie les questions.<br>  - Une question publiée apparaît dans le jeu sans mise à jour de l&#x27;application.<br>- <strong>La mise en ligne est automatique</strong> : à chaque modification du code, les tests sont relancés puis le site est mis à jour.</p>
+<p dir="auto"><strong>Avant de le faire utiliser par des enfants</strong>, il reste trois choses :</p>
+<p dir="auto">1. <strong>Les questions</strong> : les 15 questions de départ ne sont que des exemples. Faites-les relire par une personne compétente, puis ajoutez les vôtres. Pour aller plus vite, vous pouvez utiliser l&#x27;import CSV depuis Excel.<br>2. <strong>Les illustrations</strong> : la mascotte, le parchemin, les cartes en bois et les décors sont encore des dessins provisoires. Il suffit de placer vos images dans <code>app/assets/</code> avec les noms indiqués dans le README ; elles remplaceront automatiquement les dessins provisoires.<br>3. <strong>Les rédacteurs</strong> : si d&#x27;autres personnes doivent écrire des questions, créez-leur un compte avec le rôle <code>editor</code>. Elles pourront écrire mais pas publier, et vous validerez leurs questions.</p>
+<p dir="auto">Je peux vous aider pour la suite :<br>- rédiger un premier lot de questions par thème (prière, ablutions, prophètes, invocations…), en CSV prêt à importer ;<br>- intégrer vos illustrations dès que vous les avez ;<br>- ajouter des fonctions, par exemple des sons, la lecture à voix haute des questions pour les enfants qui ne lisent pas encore, ou un classement.</p></section><section class="user"><h2>Vous <small>2026-10-31 20:28 UTC</small></h2><p dir="auto">maintenat svp travailler sur le designe pour etre aterant pour les enfant</p></section><section class="ai"><h2>Claude <small>2026-10-31 20:28 UTC</small></h2><p dir="auto">Je vais retravailler l&#x27;ensemble de l&#x27;apparence. Voici d&#x27;abord ce que je change, puis je m&#x27;y mets.</p>
+<p dir="auto"><strong>Le plan :</strong><br>1. <strong>Décors animés dessinés</strong> : une forêt de jour avec soleil et nuages qui défilent, une jungle de nuit avec lune et étoiles scintillantes, un désert avec dunes et cactus. Chaque monde a le sien.<br>2. <strong>Une vraie mascotte</strong> : un petit monstre avec du relief, de grands yeux qui clignent et un sourire. Elle saute de joie quand l&#x27;enfant a juste, et fait une petite moue quand il se trompe.<br>3. <strong>Parchemin et cartes en bois</strong> fidèles à vos images de référence : bords de papier déchirés, veinures du bois, petite encoche en haut des cartes.<br>4. <strong>Récompenses</strong> : des confettis et « أحسنت! » à chaque bonne réponse, une pièce qui vole jusqu&#x27;au compteur, des étoiles qui éclatent à la fin du niveau.<br>5. <strong>Une police arabe ludique</strong> (Lalezar) pour les titres, en gardant Tajawal pour les textes à lire.</p>
+<p dir="auto">Je commence par relire le code actuel des éléments visuels.</p><p dir="auto">J&#x27;ai fait le tour du code actuel. Je commence par la police des titres : Lalezar, une police arabe ronde et ludique, gratuite et libre de droits (licence OFL).</p><p dir="auto">Je dessine maintenant les trois décors animés. Les animations se coupent automatiquement si l&#x27;appareil est réglé sur « réduire les animations ».</p><p dir="auto">Ensuite, la nouvelle mascotte, avec trois humeurs : normale, joyeuse et triste.</p><p dir="auto">Viennent ensuite le parchemin, les cartes en bois et les confettis :</p><p dir="auto">Je branche maintenant ces dessins dans les composants partagés (fond, mascotte, titres) :</p><p dir="auto">J&#x27;extrais l&#x27;écran d&#x27;accueil dans son propre fichier et je le redessine : grand titre « كنوز », mascotte qui sautille, bouton « jouer » qui pulse doucement.</p><p dir="auto">Au tour de l&#x27;écran de question, le plus important. Je relis d&#x27;abord la partie concernée :</p><p dir="auto">Je réécris la partie visuelle de l&#x27;écran de question : parchemin, cartes, scène du bas et barre de progression.</p><p dir="auto">Il reste l&#x27;écran de résultat et la carte à adapter. Je relis d&#x27;abord l&#x27;écran de résultat :</p><p dir="auto">Je redessine l&#x27;écran de résultat : décor animé, confettis à partir de 2 étoiles, mascotte dont l&#x27;humeur dépend du score, et carte en parchemin.</p><p dir="auto">Je branche les terrains dans la carte, à la place des fonds unis et des icônes génériques :</p><p dir="auto"><code>fallbackGradient</code> ne sert plus nulle part : je le retire, puis je lance les tests.</p><p dir="auto">Le test récupère l&#x27;erreur sans afficher d&#x27;où elle vient. Je lance un test temporaire qui laisse Flutter afficher le détail complet du débordement :</p><p dir="auto">Il ne reste qu&#x27;un échec : le test cherche encore les anciennes icônes ✓ et ✗, que j&#x27;ai remplacées par leur version arrondie.</p><p dir="auto">Les 14 tests passent. C&#x27;est le moment de voir le résultat dans un vrai navigateur. Je compile et je capture chaque écran : accueil, carte, question, bonne réponse, mauvaise réponse, résultat.</p><p dir="auto">15 tests sur 15. Je recompile et je refais les captures, avec la bonne position pour le bouton « jouer » :</p><p dir="auto">C&#x27;est confirmé par la documentation de la bibliothèque elle-même : « ascending defaults to false… the opposite of SQL&#x27;s ORDER BY and of postgrest-js ». Je corrige les 4 appels :</p><p dir="auto">J&#x27;ajoute un test qui intercepte les requêtes envoyées à Supabase et vérifie qu&#x27;elles demandent toutes un tri du plus petit au plus grand. Avant la correction, ce test aurait échoué.</p><p dir="auto">Le faux serveur doit rattacher la requête d&#x27;origine à chaque réponse, ce que la bibliothèque Supabase exige. Je corrige le test :</p><p dir="auto">Les deux tests passent. Je vérifie maintenant qu&#x27;ils détectent bien le bug : je remets temporairement l&#x27;ancien code, et ils doivent échouer.</p><p dir="auto">Le commit publié, pris seul, passe l&#x27;analyse et les 16 tests, et se compile. Je surveille sa mise en ligne en arrière-plan et je reprends la revue du design.</p><p dir="auto">Tout est en place. Je publie le nouveau design, puis je mets à jour la démo privée, qui a besoin en plus de la nouvelle police.</p><p dir="auto">J&#x27;ai fait deux choses : corriger l&#x27;ordre inversé de la carte et refaire le design pour les enfants.</p>
+<p dir="auto"><strong class="h">1. L&#x27;ordre inversé : corrigé et en ligne</strong></p>
+<p dir="auto"><strong>La cause :</strong> dans la bibliothèque Supabase pour Dart, le tri se fait par défaut du plus grand au plus petit. J&#x27;ai supposé le contraire. Ce bug avait deux effets :<br>- la carte était à l&#x27;envers, avec le niveau 4 en bas ;<br>- <strong>plus grave, les questions d&#x27;un niveau arrivaient aussi à l&#x27;envers</strong>, alors que le serveur calcule le score dans l&#x27;ordre normal. Les scores obtenus jusqu&#x27;ici avec Supabase peuvent donc être faux.</p>
+<p dir="auto"><strong>La correction :</strong> tous les tris sont maintenant explicitement du plus petit au plus grand. J&#x27;ai ajouté un test qui vérifie les requêtes envoyées à Supabase ; il échoue bien sur l&#x27;ancien code.</p>
+<p dir="auto"><strong>À faire de votre côté :</strong> les étoiles et pièces enregistrées pendant vos essais peuvent être fausses. Si ce ne sont que des tests, remettez-les à zéro dans <strong>Supabase → SQL Editor</strong> :</p>
+<pre dir="ltr">delete from public.attempts;
+delete from public.level_progress;
+update public.profiles set coins = 0;
+</pre>
+<p dir="auto">⚠️ Ces commandes effacent la progression de <strong>tous</strong> les joueurs. Ne les lancez que tant que le jeu n&#x27;est pas encore utilisé par de vrais enfants.</p>
+<p dir="auto"><strong class="h">2. Le nouveau design</strong></p>
+<p dir="auto">Je vous ai envoyé 5 captures prises dans le navigateur.</p>
+<p dir="auto">- <strong>Décors animés</strong>, un par monde :<br>  - forêt de jour, avec soleil et nuages qui défilent ;<br>  - jungle de nuit, avec lune, étoiles qui scintillent et lucioles ;<br>  - désert, avec dunes et cactus.<br>- <strong>Mascotte expressive</strong> : elle respire et cligne des yeux. Elle <strong>lève les bras de joie</strong> quand la réponse est juste, et fait une petite moue triste en montrant l&#x27;explication quand elle est fausse.<br>- <strong>Récompenses</strong> à chaque bonne réponse : confettis, bulle « أحسنت! » ou « ممتاز! », et un « +10 » qui s&#x27;envole. À la fin du niveau, les étoiles éclatent et des confettis tombent à partir de 2 étoiles.<br>- <strong>Parchemin aux bords déchirés et cartes en bois</strong> avec l&#x27;encoche de vos maquettes. Une mauvaise réponse tremble un instant.<br>- <strong>Carte</strong> : un terrain différent par monde, avec sapins, champignons lumineux ou cactus.<br>- <strong>Titres</strong> dans une police arabe ronde et ludique (Lalezar), et une <strong>vraie pièce d&#x27;or</strong> à la place du symbole « $ ».</p>
+<p dir="auto">Les animations s&#x27;arrêtent automatiquement si le téléphone est réglé sur « réduire les animations ».</p>
+<p dir="auto"><strong>Vérification :</strong><br>- J&#x27;ai joué un niveau complet dans le navigateur.<br>- J&#x27;ai trouvé et corrigé deux défauts en cours de route : l&#x27;accueil n&#x27;occupait que les trois quarts de la largeur, et le bouton « ابدأ اللعب » pouvait déborder sur un petit écran.<br>- Les 17 tests passent.</p>
+<p dir="auto">La mise en ligne est en cours, je vous préviens quand elle est terminée. Rechargez alors https://laanibazakaria.github.io/konoz/ ; la démo privée est déjà à jour.</p>
+<p dir="auto">Si vous voulez ajuster une couleur, la mascotte ou un décor, dites-moi lequel.</p><p dir="auto">Le nouveau design est en ligne : GitHub l&#x27;a compilé et publié sans erreur, après avoir fait passer les tests.</p>
+<p dir="auto">Ouvrez https://laanibazakaria.github.io/konoz/ ; si l&#x27;ancienne version s&#x27;affiche encore, rechargez la page une fois. Je ne peux pas ouvrir le site en ligne depuis mon environnement : si quelque chose ne s&#x27;affiche pas comme sur les captures, envoyez-moi une capture d&#x27;écran.</p></section><section class="user"><h2>Vous <small>2026-10-31 23:59 UTC</small></h2><p dir="auto">comment je telecharger cette conversation</p></section><section class="ai"><h2>Claude <small>2026-10-31 23:59 UTC</small></h2><p dir="auto">Je regarde si l&#x27;historique de cette session est enregistré dans mon environnement. Si oui, je peux le convertir en un document lisible.</p><p dir="auto">L&#x27;historique complet de cette session est bien enregistré. Je le convertis en document lisible : vos messages et mes réponses, sans les opérations techniques intermédiaires.</p><p dir="auto">Je vérifie que le document va bien jusqu&#x27;à la fin et qu&#x27;aucune information technique interne n&#x27;y figure :</p><p dir="auto">Je vous ai envoyé toute la conversation en deux fichiers, à télécharger depuis les cartes de fichiers ci-dessus :</p>
+<p dir="auto">- <strong><code>conversation_konoz.html</code></strong> : le plus pratique. Ouvrez-le dans votre navigateur ; vos messages sont sur fond violet clair. Pour obtenir un <strong>PDF</strong>, faites <strong>Ctrl + P</strong>, puis choisissez <strong>« Enregistrer au format PDF »</strong> comme imprimante.<br>- <strong><code>conversation_konoz.md</code></strong> : le même contenu en texte simple, au format Markdown. Il s&#x27;ouvre avec n&#x27;importe quel éditeur de texte, ou s&#x27;affiche directement sur GitHub.</p>
+<p dir="auto">Le document contient vos 21 messages et mes 21 réponses, avec les dates. J&#x27;ai retiré les opérations techniques intermédiaires (commandes, résultats de tests). Les images que vous aviez jointes sont signalées par « [image(s) jointe(s)] » mais ne sont pas incluses.</p>
+<p dir="auto">De toute façon, la conversation reste disponible dans Claude : elle apparaît dans votre historique sur claude.ai/code, et vous pouvez la rouvrir à tout moment. Le code, lui, est sauvegardé sur GitHub (https://github.com/laanibazakaria/konoz). Si vous voulez aussi garder ce document dans le dépôt, je peux l&#x27;y ajouter.</p></section><section class="user"><h2>Vous <small>2026-11-01 00:01 UTC</small></h2><p dir="auto">ajoute le document dans le dépôt</p></section><section class="ai"><h2>Claude <small>2026-11-01 00:01 UTC</small></h2><p dir="auto">Le dépôt <code>konoz</code> est <strong>public</strong> : une fois le document ajouté, tout le monde pourra le lire. Il ne contient ni clé ni mot de passe, seulement nos échanges. Je régénère le document pour y inclure les derniers messages, puis je l&#x27;ajoute dans un dossier <code>docs/</code>.</p></section></body></html>

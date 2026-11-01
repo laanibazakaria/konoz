@@ -11,6 +11,10 @@ name: Déploiement web
 on:
   push:
     branches: [main]
+    # Un changement de documentation seul ne relance pas la mise en ligne
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:
